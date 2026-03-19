@@ -17,31 +17,35 @@ function App() {
       <Route
         path="/"
         element={
-          <ProtectedRoute>
+          <>
+          {/* // <ProtectedRoute> */}
             <Layout>
               <Home />
             </Layout>
-          </ProtectedRoute>
+          {/* </ProtectedRoute> */}
+          </>
         }
       />
       <Route
         path="/dashboard"
         element={
-          <ProtectedRoute>
+          // <ProtectedRoute>
             <Layout>
               <Home />
             </Layout>
-          </ProtectedRoute>
+          // </ProtectedRoute>
         }
       />
         <Route
         path="/companies"
         element={
-          <ProtectedRoute>
+          <>
+          {/* // <ProtectedRoute> */}
             <Layout>
              <CompaniesHome/>
             </Layout>
-          </ProtectedRoute>
+          {/* </ProtectedRoute> */}
+          </>
         }
       />
       <Route
@@ -66,9 +70,9 @@ function App() {
       />
 
       {/* ── Auth routes (no Layout) ── */}
-      <Route path="/login"     element={<Login />}     />
+      {/* <Route path="/login"     element={<Login />}     />
       <Route path="/signup"    element={<Signup />}    />
-      <Route path="/forgetpin" element={<Forgetpin />} />
+      <Route path="/forgetpin" element={<Forgetpin />} /> */}
 
     </Routes>
   );

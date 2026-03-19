@@ -143,7 +143,7 @@ export function Login() {
         </Button>
 
         {/* Register */}
-        <p className="text-center font-bold text-gray-700">
+        {/* <p className="text-center font-bold text-gray-700">
           Don't have an account?
           <span
             onClick={() => navigate("/signup")}
@@ -151,15 +151,15 @@ export function Login() {
           >
             Register
           </span>
-        </p>
+        </p> */}
 
         {/* Forget PIN */}
-        <p
+        {/* <p
           onClick={() => navigate("/forgetpin")}
           className="text-center text-[#5865f2] underline font-bold cursor-pointer"
         >
           Forgot PIN?
-        </p>
+        </p> */}
       </Form>
     </div>
   );

@@ -39,8 +39,13 @@ export default function Sidebar({
   active,
   setActive,
 }) {
+
   const navigate = useNavigate();
 
+const handleLogou = () => {
+  localStorage.removeItem("user");  // clears your token
+  navigate("/login");               // instant redirect
+};
   const handleNav = (id) => {
     setActive(id);
     setMobileOpen(false);
@@ -189,7 +194,7 @@ export default function Sidebar({
             return (
               <button
                 key={id}
-                onClick={() => handleNav(id)}
+                onClick={isLogout ? handleLogou : () => handleNav(id)}
                 className={[
                   "w-full flex items-center gap-3 px-3 py-2.5 rounded-xl text-sm font-medium transition-all duration-200 group relative",
                   isLogout

@@ -22,7 +22,6 @@ export const GENERAL_SELECT_TYPES = [
   { name: "Motivational", value: "Motivational" },
   { name: "Health Tips", value: "Health_Tips" },
   { name: "Welcome / Closing", value: "Welcome_Closing" },
-  { name: "Rank", value: "Rank" },
   { name: "Bonanza", value: "Bonanza" },
   { name: "Meeting", value: "Meeting" },
   { name: "Good Morning", value: "Good_Morning" },

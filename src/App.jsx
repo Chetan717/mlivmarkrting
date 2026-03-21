@@ -8,6 +8,13 @@ import Layout from "./Layout";
 import CompaniesHome from "./Pages/companies/CompaniesHome";
 import AddCompanies from "./Pages/companies/Forms/AddCompanies";
 import EditCompanies from "./Pages/companies/Forms/EditCompanies";
+import AddTemplate from "./Pages/Templates/Forms/AddTemplate";
+import EditTemplate from "./Pages/Templates/Forms/EditTemplate";
+import TemplateHome from "./Pages/Templates/TemplateHome";
+import TempHome from "./Pages/Templates/TempHome";
+import GraphiHome from "./Pages/Graphics/GraphiHome";
+import AddGraphics from "./Pages/Graphics/Form/AddGraphics";
+import EditGraphics from "./Pages/Graphics/Form/EditGraphics";
 
 function App() {
   return (
@@ -28,7 +35,7 @@ function App() {
         element={
           <ProtectedRoute>
             <Layout>
-              <Home />
+              <TemplateHome/>
             </Layout>
           </ProtectedRoute>
         }
@@ -59,6 +66,67 @@ function App() {
           <ProtectedRoute>
             <Layout>
               <EditCompanies />
+            </Layout>
+          </ProtectedRoute>
+        }
+      />
+      <Route
+        path="/templates"
+        element={
+          <ProtectedRoute>
+            <Layout>
+             <TemplateHome/>
+            </Layout>
+          </ProtectedRoute>
+        }
+      />
+      <Route
+        path="/templates/add"
+        element={
+          <ProtectedRoute>
+            <Layout>
+              <AddTemplate />
+            </Layout>
+          </ProtectedRoute>
+        }
+      />
+      <Route
+        path="/templates/edit/:id"
+        element={
+          <ProtectedRoute>
+            <Layout>
+              <EditTemplate />
+            </Layout>
+          </ProtectedRoute>
+        }
+      />
+
+       <Route
+        path="/graphics"
+        element={
+          <ProtectedRoute>
+            <Layout>
+           <GraphiHome/>
+            </Layout>
+          </ProtectedRoute>
+        }
+      />
+      <Route
+        path="/graphics/add"
+        element={
+          <ProtectedRoute>
+            <Layout>
+              <AddGraphics/>
+            </Layout>
+          </ProtectedRoute>
+        }
+      />
+      <Route
+        path="/graphics/edit/:id"
+        element={
+          <ProtectedRoute>
+            <Layout>
+              <EditGraphics/>
             </Layout>
           </ProtectedRoute>
         }

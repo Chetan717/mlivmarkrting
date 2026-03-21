@@ -1,15 +1,17 @@
 import {
-  Dice5,
+  Dots9,
   Hand,
   ChartAreaStacked,
   Person,
   LogoMicrosoftOffice,
+  LayoutHeaderColumns,
+  GeoPolygons,
   Sack,
 } from "@gravity-ui/icons";
 import { useNavigate } from "react-router";
-import logo from "../../public/mlmboo2.ico"
+import logo from "../../public/mlmboo2.ico";
 const NAV_ITEMS = [
-  { icon: Dice5, label: "Dashboard", id: "dashboard", link: "/" },
+  { icon: Dots9, label: "Dashboard", id: "dashboard", link: "/" },
   // {
   //   icon: ChartAreaStacked,
   //   label: "Analytics",
@@ -21,6 +23,18 @@ const NAV_ITEMS = [
     label: "Companies",
     id: "companies",
     link: "/companies",
+  },
+  {
+    icon: LayoutHeaderColumns,
+    label: "Templates",
+    id: "templates",
+    link: "/templates",
+  },
+  {
+    icon: GeoPolygons,
+    label: "App Graphics",
+    id: "Graphics",
+    link: "/graphics",
   },
   // { icon: Person, label: "Users", id: "users", link: "/users" },
   // { icon: Sack, label: "Payments", id: "payments", link: "/payments" },
@@ -39,13 +53,12 @@ export default function Sidebar({
   active,
   setActive,
 }) {
-
   const navigate = useNavigate();
 
-const handleLogou = () => {
-  localStorage.removeItem("user");  // clears your token
-  navigate("/login");               // instant redirect
-};
+  const handleLogou = () => {
+    localStorage.removeItem("user"); // clears your token
+    navigate("/login"); // instant redirect
+  };
   const handleNav = (id) => {
     setActive(id);
     setMobileOpen(false);
@@ -83,7 +96,7 @@ const handleLogou = () => {
         <div className="flex items-center gap-3 px-4 py-[18px] border-b border-gray-100 dark:border-gray-800/70">
           {/* Icon mark */}
           <div className="min-w-[36px] w-9 h-9 rounded-xl  flex items-center justify-center shadow-lg shadow-violet-500/30 flex-shrink-0">
-                 <img src={logo} />
+            <img src={logo} />
           </div>
 
           {/* Brand name */}
@@ -96,7 +109,7 @@ const handleLogou = () => {
             ].join(" ")}
             style={{ fontFamily: "'Syne', sans-serif" }}
           >
-         <span className="text-violet-500">MLMBOOSTER</span>
+            <span className="text-violet-500">MLMBOOSTER</span>
           </span>
 
           {/* Mobile close button */}

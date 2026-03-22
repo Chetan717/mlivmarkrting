@@ -1,6 +1,6 @@
-import { useState, useCallback, useMemo } from "react";
+import { useState, useCallback, useMemo , useEffect } from "react";
 import { useNavigate } from "react-router";
-import { collection, addDoc, serverTimestamp } from "firebase/firestore";
+import { collection, addDoc, getDocs, serverTimestamp } from "firebase/firestore";
 import { db } from "../../../../Firebase";
 import {
   ArrowLeft, TriangleThunderbolt, CircleCheck, ChevronDown, Eye, Folder,
@@ -20,7 +20,7 @@ import {
   getSelectTypes,
 } from "../Constant";
 
-const FORM_DEFAULTS = { ...INITIAL_FORM, ShowCaseForm: "", Launched: true };
+const FORM_DEFAULTS = { ...INITIAL_FORM, ShowCaseForm: "", Launched: true, Company: "" };
 
 function TextField({ label, id, value, onChange, placeholder, required, type = "text" }) {
   return (
@@ -99,8 +99,30 @@ export default function AddTemplate() {
   const setField   = useCallback((key) => (val) => setForm((p) => ({ ...p, [key]: val })), []);
   const handleText = useCallback((key) => (e)   => setForm((p) => ({ ...p, [key]: e.target.value })), []);
 
+  // ── Companies — fetched only when MLM is selected ─────────────────────────
+  const [companies,        setCompanies]        = useState([]);
+  const [companiesLoading, setCompaniesLoading] = useState(false);
+
+  useEffect(() => {
+    if (form.MainType !== "MLM") {
+      setCompanies([]);
+      setForm((p) => ({ ...p, Company: "" })); // clear company if type changes
+      return;
+    }
+    let cancelled = false;
+    setCompaniesLoading(true);
+    getDocs(collection(db, "mlmcomp"))
+      .then((snap) => {
+        if (!cancelled)
+          setCompanies(snap.docs.map((d) => ({ id: d.id, name: d.data().name || d.id })));
+      })
+      .catch(console.error)
+      .finally(() => { if (!cancelled) setCompaniesLoading(false); });
+    return () => { cancelled = true; };
+  }, [form.MainType]);
+
   const handleMainTypeChange = useCallback((e) => {
-    setForm((p) => ({ ...p, MainType: e.target.value, SelectType: "", Date: "" }));
+    setForm((p) => ({ ...p, MainType: e.target.value, SelectType: "", Date: "", Company: "" }));
   }, []);
 
   const handleSelectTypeChange = useCallback((e) => {
@@ -165,6 +187,35 @@ export default function AddTemplate() {
             onChange={handleText("Subtype")}
             placeholder="e.g. Diwali, Gold Pack, Morning Series…"
           />
+
+          {/* Company — only when MainType === "MLM" */}
+          {form.MainType === "MLM" && (
+            <div className="flex flex-col gap-1.5">
+              <FieldLabel>Company</FieldLabel>
+              <div className="relative">
+                <select
+                  value={form.Company || ""}
+                  onChange={handleText("Company")}
+                  disabled={companiesLoading}
+                  className={`${selectCls} ${companiesLoading ? "opacity-60 cursor-not-allowed" : ""}`}
+                >
+                  <option value="">
+                    {companiesLoading ? "Loading companies…" : "Select company…"}
+                  </option>
+                  {companies.map((c) => (
+                    <option key={c.id} value={c.id}>{c.name}</option>
+                  ))}
+                </select>
+                <ChevronDown className="pointer-events-none absolute right-3 top-1/2 -translate-y-1/2 w-4 h-4 text-gray-400" />
+              </div>
+              {companiesLoading && (
+                <p className="text-xs text-violet-500 flex items-center gap-1.5">
+                  <span className="w-3 h-3 border-2 border-violet-300 border-t-violet-500 rounded-full animate-spin inline-block" />
+                  Fetching companies from Firestore…
+                </p>
+              )}
+            </div>
+          )}
 
           {/* Festival date — conditional */}
           {isFestival && (

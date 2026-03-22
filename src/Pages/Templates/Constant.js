@@ -66,6 +66,7 @@ export const INITIAL_FORM = {
   MainType:     "",
   SelectType:   "",
   Subtype:      "",
+  Company:      "",
   Showcase_url: "",
   ShowCaseForm: "",
   Date:         "",

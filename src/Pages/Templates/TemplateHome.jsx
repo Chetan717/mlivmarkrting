@@ -60,8 +60,31 @@ export default function TemplateHome() {
   // Filters
   const [filterType,       setFilterType]       = useState(""); // "" | "MLM" | "General"
   const [filterSelectType, setFilterSelectType] = useState(""); // SelectType value
+  const [filterCompany,    setFilterCompany]    = useState(""); // company id — MLM only
   const [search,           setSearch]           = useState("");
   const [currentPage,      setCurrentPage]      = useState(1);
+
+  // Companies — fetched from mlmcomp only when MLM is selected
+  const [companies,        setCompanies]        = useState([]);
+  const [companiesLoading, setCompaniesLoading] = useState(false);
+
+  useEffect(() => {
+    if (filterType !== "MLM") {
+      setCompanies([]);
+      setFilterCompany("");
+      return;
+    }
+    let cancelled = false;
+    setCompaniesLoading(true);
+    getDocs(collection(db, "mlmcomp"))
+      .then((snap) => {
+        if (!cancelled)
+          setCompanies(snap.docs.map((d) => ({ id: d.id, name: d.data().name || d.id })));
+      })
+      .catch(console.error)
+      .finally(() => { if (!cancelled) setCompaniesLoading(false); });
+    return () => { cancelled = true; };
+  }, [filterType]);
 
   // SelectType options change based on chosen MainType filter
   const selectTypeOptions = useMemo(() => {
@@ -89,7 +112,7 @@ export default function TemplateHome() {
       setLoading(false);
     }
   }, []);
-   useEffect(() => {
+useEffect(() => {
       fetchTemplates()
     }, [fetchTemplates]);
   // ── Counts ────────────────────────────────────────────────────────────────
@@ -104,6 +127,7 @@ export default function TemplateHome() {
     let list = allTemplates;
     if (filterType)       list = list.filter((t) => t.MainType   === filterType);
     if (filterSelectType) list = list.filter((t) => t.SelectType === filterSelectType);
+    if (filterCompany)    list = list.filter((t) => t.Company    === filterCompany);
     if (search.trim()) {
       const q = search.trim().toLowerCase();
       list = list.filter(
@@ -115,7 +139,7 @@ export default function TemplateHome() {
       );
     }
     return list;
-  }, [allTemplates, filterType, filterSelectType, search]);
+  }, [allTemplates, filterType, filterSelectType, filterCompany, search]);
 
   const totalPages   = useMemo(() => Math.max(1, Math.ceil(filtered.length / PAGE_SIZE)), [filtered]);
   const paginated    = useMemo(() => {
@@ -127,9 +151,11 @@ export default function TemplateHome() {
   const handleFilterType = useCallback((val) => {
     setFilterType(val);
     setFilterSelectType(""); // reset SelectType filter when MainType changes
+    setFilterCompany("");    // reset company filter when MainType changes
     setCurrentPage(1);
   }, []);
   const handleFilterSelectType = useCallback((val) => { setFilterSelectType(val); setCurrentPage(1); }, []);
+  const handleFilterCompany    = useCallback((val) => { setFilterCompany(val);    setCurrentPage(1); }, []);
   const handleSearch           = useCallback((e)   => { setSearch(e.target.value); setCurrentPage(1); }, []);
 
   // ── Delete ────────────────────────────────────────────────────────────────
@@ -149,7 +175,7 @@ export default function TemplateHome() {
 
   const handleEdit = useCallback((id) => navigate(`/templates/edit/${id}`), [navigate]);
 
-  const isFiltered = !!(filterType || filterSelectType || search.trim());
+  const isFiltered = !!(filterType || filterSelectType || filterCompany || search.trim());
 
   return (
     <div className="p-4 md:p-6 max-w-7xl mx-auto space-y-6">
@@ -170,7 +196,7 @@ export default function TemplateHome() {
             className="flex items-center gap-2 px-4 py-2 rounded-xl border border-gray-200 dark:border-gray-700 bg-white dark:bg-gray-800 text-gray-700 dark:text-gray-300 text-sm font-medium hover:bg-gray-50 dark:hover:bg-gray-700 transition-all disabled:opacity-60 disabled:cursor-not-allowed"
           >
             <ArrowRotateRight className={`w-4 h-4 ${loading ? "animate-spin" : ""}`} />
-            {loading ? "Loading…" : fetched ? "Refresh" : "Refresh"}
+            {loading ? "Loading…" : fetched ? "Refresh" : "Fetch Templates"}
           </button>
 
           <button
@@ -261,6 +287,26 @@ export default function TemplateHome() {
               <ChevronDown className="pointer-events-none absolute right-3 top-1/2 -translate-y-1/2 w-4 h-4 text-gray-400" />
             </div>
 
+            {/* Company filter — only visible when MainType === "MLM" */}
+            {filterType === "MLM" && (
+              <div className="relative">
+                <select
+                  value={filterCompany}
+                  onChange={(e) => handleFilterCompany(e.target.value)}
+                  disabled={companiesLoading}
+                  className="pl-4 pr-9 py-2 rounded-xl border border-gray-200 dark:border-gray-700 bg-white dark:bg-gray-800 text-sm text-gray-700 dark:text-gray-300 focus:outline-none focus:ring-2 focus:ring-violet-400/30 focus:border-violet-400 transition-all appearance-none cursor-pointer disabled:opacity-60 disabled:cursor-not-allowed"
+                >
+                  <option value="">
+                    {companiesLoading ? "Loading companies…" : "All Companies"}
+                  </option>
+                  {companies.map((c) => (
+                    <option key={c.id} value={c.id}>{c.name}</option>
+                  ))}
+                </select>
+                <ChevronDown className="pointer-events-none absolute right-3 top-1/2 -translate-y-1/2 w-4 h-4 text-gray-400" />
+              </div>
+            )}
+
             {/* Active filter chips */}
             <div className="flex items-center gap-2 flex-wrap">
               {filterType && (
@@ -273,6 +319,12 @@ export default function TemplateHome() {
                 <span className="flex items-center gap-1.5 px-2.5 py-1 rounded-full bg-sky-50 dark:bg-sky-500/10 text-sky-700 dark:text-sky-400 text-xs font-medium border border-sky-100 dark:border-sky-500/20">
                   {selectTypeOptions.find((o) => o.value === filterSelectType)?.name || filterSelectType}
                   <button onClick={() => handleFilterSelectType("")} className="hover:opacity-70 transition-opacity font-bold leading-none">×</button>
+                </span>
+              )}
+              {filterCompany && (
+                <span className="flex items-center gap-1.5 px-2.5 py-1 rounded-full bg-emerald-50 dark:bg-emerald-500/10 text-emerald-700 dark:text-emerald-400 text-xs font-medium border border-emerald-100 dark:border-emerald-500/20">
+                  {companies.find((c) => c.id === filterCompany)?.name || filterCompany}
+                  <button onClick={() => handleFilterCompany("")} className="hover:opacity-70 transition-opacity font-bold leading-none">×</button>
                 </span>
               )}
             </div>

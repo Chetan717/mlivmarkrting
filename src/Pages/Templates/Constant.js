@@ -1,81 +1,111 @@
 // ── Type Options ─────────────────────────────────────────────────────────────
 export const MAIN_TYPES = [
-  { name: "MLM", value: "MLM" },
+  { name: "MLM",     value: "MLM" },
   { name: "General", value: "General" },
 ];
-let _idCounter = Date.now(); // starts from timestamp so IDs are unique
-export const nextId = () => ++_idCounter;
 
 export const MLM_SELECT_TYPES = [
-  { name: "Today Trending", value: "Today_Trending" },
-  { name: "Rank Promotion", value: "Rank_Promotion" },
-  { name: "Rank Promotion B", value: "Rank_Promotion_B" },
-  { name: "Capping", value: "Capping" },
-  { name: "Thank You Banner B", value: "ThankYou_Banner_B" },
-  { name: "Meeting", value: "Meeting" },
-  { name: "Product", value: "Product" },
+  { name: "Today Trending",      value: "Today_Trending" },
+  { name: "Rank Promotion",      value: "Rank_Promotion" },
+  { name: "Rank Promotion B",    value: "Rank_Promotion_B" },
+  { name: "Capping",             value: "Capping" },
+  { name: "Thank You Banner B",  value: "ThankYou_Banner_B" },
+  { name: "Meeting",             value: "Meeting" },
+  { name: "Product",             value: "Product" },
 ];
 
 export const GENERAL_SELECT_TYPES = [
-  { name: "Trending", value: "Trending" },
-  { name: "Festival", value: "Festival" },
-  { name: "Motivational", value: "Motivational" },
-  { name: "Health Tips", value: "Health_Tips" },
-  { name: "Welcome / Closing", value: "Welcome_Closing" },
-  { name: "Bonanza", value: "Bonanza" },
-  { name: "Meeting", value: "Meeting" },
-  { name: "Good Morning", value: "Good_Morning" },
-  { name: "Devotional / Spiritual", value: "Devotional_Spiritual" },
-  { name: "Leader Quotes", value: "Leader_Quotes" },
-  { name: "Achievements", value: "Achievements" },
-  { name: "Achievements B", value: "Achievements_B" },
-  { name: "Income", value: "Income" },
-  { name: "One Day Income", value: "One_Day_Income" },
-  { name: "Anniversary & Birthday", value: "Anniversary_Birthday" },
-  {
-    name: "Thank You (Birthday & Anniversary)",
-    value: "ThankYou_Birthday_Anniversary",
-  },
-  { name: "Capping", value: "Capping" },
+  { name: "Trending",                           value: "Trending" },
+  { name: "Festival",                           value: "Festival" },
+  { name: "Motivational",                       value: "Motivational" },
+  { name: "Health Tips",                        value: "Health_Tips" },
+  { name: "Welcome / Closing",                  value: "Welcome_Closing" },
+  { name: "Rank",                               value: "Rank" },
+  { name: "Bonanza",                            value: "Bonanza" },
+  { name: "Meeting",                            value: "Meeting" },
+  { name: "Good Morning",                       value: "Good_Morning" },
+  { name: "Devotional / Spiritual",             value: "Devotional_Spiritual" },
+  { name: "Leader Quotes",                      value: "Leader_Quotes" },
+  { name: "Achievements",                       value: "Achievements" },
+  { name: "Achievements B",                     value: "Achievements_B" },
+  { name: "Income",                             value: "Income" },
+  { name: "One Day Income",                     value: "One_Day_Income" },
+  { name: "Anniversary & Birthday",             value: "Anniversary_Birthday" },
+  { name: "Thank You (Birthday & Anniversary)", value: "ThankYou_Birthday_Anniversary" },
+  { name: "Capping",                            value: "Capping" },
 ];
 
 export const POSITION_OPTIONS = [
-  { name: "Left", value: "left" },
+  { name: "Left",  value: "left" },
   { name: "Right", value: "right" },
 ];
 
 // ── Helpers ───────────────────────────────────────────────────────────────────
 export const uid = () => Math.random().toString(36).slice(2, 9);
 
+// Auto-incrementing counter for numeric IDs (resets per page session)
+let _idCounter = Date.now();
+export const nextId = () => ++_idCounter;
+
 export const emptyGraphicsLink = () => ({
-  _key: uid(), // local React key only (not saved)
-  id: "",
-  url: "",
-  suggestionImage: "",
-  Date: "",
-  nameImageUrl: "",
-  bannerId: "",
-  position: "left",
-  incmNameId: "",
-  Filter: "",
-  active: "true",
+  _key:           uid(),      // local React key only (not saved to Firestore)
+  id:             nextId(),   // auto-generated numeric ID — not editable by user
+  url:            "",
+  suggestionImage:"",
+  Date:           "",
+  nameImageUrl:   "",
+  bannerId:       "",
+  position:       "left",
+  incmNameId:     "",
+  Filter:         "true",
+  active:         "true",
+  pass:           "",      // password-protected delete (checked against "5688")
 });
 
 export const INITIAL_FORM = {
-  MainType: "",
-  SelectType: "",
+  MainType:     "",
+  SelectType:   "",
+  Subtype:      "",
   Showcase_url: "",
-  Date: "",
-  serial: "",
-  Active: false,
-  Launched: false,
+  ShowCaseForm: "",
+  Date:         "",
+  serial:       "",
+  Active:       false,
+  Launched:     true,
   GraphicsLink: [emptyGraphicsLink()],
 };
 
-// Get select options based on MainType
+// ── Conditional helpers (ported from GraphicsLinkSingle) ──────────────────────
+
+/** Types where nameImageUrl (Badge/Achievement graphic) is shown */
+export const SHOW_NAME_IMAGE_TYPES = ["Achievements", "Achievements_B"];
+
+/** Types where bannerId (badge/frame) is HIDDEN */
+export const HIDE_BANNER_ID_TYPES = [
+  "Festival", "Leader_Quotes", "Today_Trending",
+  "ThankYou_Banner_B", "ThankYou_Birthday_Anniversary", "Meeting",
+];
+
+/** Types where position selector is HIDDEN */
+export const HIDE_POSITION_TYPES = ["Festival", "Achievements"];
+
+/** Default position override per type */
+export const defaultPosition = (selType) =>
+  selType === "Achievements" ? "right" : "left";
+
+/** Filter dropdown labels */
+export const filterLabels = (selType) =>
+  selType === "Meeting"
+    ? { show: "Host", hide: "Without Host" }
+    : { show: "Show", hide: "Hide" };
+
+/** Get SelectType options for a given MainType */
 export const getSelectTypes = (mainType) =>
   mainType === "MLM"
     ? MLM_SELECT_TYPES
     : mainType === "General"
-      ? GENERAL_SELECT_TYPES
-      : [];
+    ? GENERAL_SELECT_TYPES
+    : [];
+
+/** Delete password */
+export const DELETE_PASS = "5688";

@@ -6,10 +6,19 @@ import {
   ArrowLeft, TrashBin, TriangleThunderbolt, CircleCheck, ChevronDown, Eye, Folder,
 } from "@gravity-ui/icons";
 import ImageUploadInput from "../../../Utils/Imageuploadinput";
-import {  GraphicsLinksField, inputCls, selectCls, FieldLabel } from "../GraphicsLinkRow";
 import {
-  MAIN_TYPES, POSITION_OPTIONS,
-  emptyGraphicsLink, getSelectTypes, uid,
+  GraphicsLinksField,
+  inputCls,
+  selectCls,
+  FieldLabel,
+} from "../GraphicsLinkRow";
+import {
+  MAIN_TYPES,
+  POSITION_OPTIONS,
+  INITIAL_FORM,
+  emptyGraphicsLink,
+  getSelectTypes,
+  uid
 } from "../Constant";
 
 function TextField({ label, value, onChange, placeholder, required, type = "text" }) {
@@ -126,6 +135,7 @@ export default function EditTemplate() {
           setForm({
             MainType:     d.MainType     || "",
             SelectType:   d.SelectType   || "",
+            Subtype:      d.Subtype      || "",
             Showcase_url: d.Showcase_url || "",
             ShowCaseForm: d.ShowCaseForm || "",
             Date:         d.Date         || "",
@@ -178,7 +188,6 @@ export default function EditTemplate() {
     } catch (err) {
       console.error(err);
       setError("Failed to update template.");
-      toast.danger("Failed to update template.");
     } finally { setSaveLoading(false); }
   }, [form, id, navigate]);
 
@@ -242,7 +251,13 @@ export default function EditTemplate() {
                 <SelectField label="Select Type" value={form.SelectType} onChange={handleSelectTypeChange}    options={selectTypeOptions} placeholder={form.MainType ? "Select type…" : "Choose Main Type first"} required disabled={!form.MainType} />
               </div>
 
-              {/* Festival date */}
+              {/* Subtype — free-text, always visible */}
+              <TextField
+                label="Subtype"
+                value={form.Subtype || ""}
+                onChange={handleText("Subtype")}
+                placeholder="e.g. Diwali, Gold Pack, Morning Series…"
+              />
               {isFestival && (
                 <div className="flex flex-col gap-1.5 p-3 rounded-xl bg-amber-50 dark:bg-amber-500/10 border border-amber-200 dark:border-amber-500/20">
                   <FieldLabel required>Date of Festival</FieldLabel>

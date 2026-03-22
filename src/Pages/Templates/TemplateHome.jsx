@@ -11,7 +11,7 @@ import {
   Magnifier,
   ChevronDown,
 } from "@gravity-ui/icons";
-import { MAIN_TYPES } from "./Constant";
+import { MAIN_TYPES, MLM_SELECT_TYPES, GENERAL_SELECT_TYPES } from "./Constant";
 
 const PAGE_SIZE = 12;
 
@@ -58,9 +58,19 @@ export default function TemplateHome() {
   const [deletingId,   setDeletingId]   = useState(null);
 
   // Filters
-  const [filterType,   setFilterType]   = useState(""); // "" | "MLM" | "General"
-  const [search,       setSearch]       = useState("");
-  const [currentPage,  setCurrentPage]  = useState(1);
+  const [filterType,       setFilterType]       = useState(""); // "" | "MLM" | "General"
+  const [filterSelectType, setFilterSelectType] = useState(""); // SelectType value
+  const [search,           setSearch]           = useState("");
+  const [currentPage,      setCurrentPage]      = useState(1);
+
+  // SelectType options change based on chosen MainType filter
+  const selectTypeOptions = useMemo(() => {
+    if (filterType === "MLM")     return MLM_SELECT_TYPES;
+    if (filterType === "General") return GENERAL_SELECT_TYPES;
+    // When "All Types" — merge both, deduplicate by value
+    const all = [...MLM_SELECT_TYPES, ...GENERAL_SELECT_TYPES];
+    return all.filter((item, idx, arr) => arr.findIndex((x) => x.value === item.value) === idx);
+  }, [filterType]);
 
   // ── Fetch ─────────────────────────────────────────────────────────────────
   const fetchTemplates = useCallback(async () => {
@@ -79,11 +89,9 @@ export default function TemplateHome() {
       setLoading(false);
     }
   }, []);
-
-    useEffect(() => {
+   useEffect(() => {
       fetchTemplates()
     }, [fetchTemplates]);
-
   // ── Counts ────────────────────────────────────────────────────────────────
   const counts = useMemo(() => ({
     total:   allTemplates.length,
@@ -94,18 +102,20 @@ export default function TemplateHome() {
   // ── Filtered + paginated ──────────────────────────────────────────────────
   const filtered = useMemo(() => {
     let list = allTemplates;
-    if (filterType) list = list.filter((t) => t.MainType === filterType);
+    if (filterType)       list = list.filter((t) => t.MainType   === filterType);
+    if (filterSelectType) list = list.filter((t) => t.SelectType === filterSelectType);
     if (search.trim()) {
       const q = search.trim().toLowerCase();
       list = list.filter(
         (t) =>
           (t.SelectType || "").toLowerCase().includes(q) ||
           (t.MainType   || "").toLowerCase().includes(q) ||
+          (t.Subtype    || "").toLowerCase().includes(q) ||
           String(t.serial || "").includes(q)
       );
     }
     return list;
-  }, [allTemplates, filterType, search]);
+  }, [allTemplates, filterType, filterSelectType, search]);
 
   const totalPages   = useMemo(() => Math.max(1, Math.ceil(filtered.length / PAGE_SIZE)), [filtered]);
   const paginated    = useMemo(() => {
@@ -114,8 +124,13 @@ export default function TemplateHome() {
   }, [filtered, currentPage]);
 
   // Reset page when filter/search changes
-  const handleFilterType = useCallback((val) => { setFilterType(val); setCurrentPage(1); }, []);
-  const handleSearch     = useCallback((e)   => { setSearch(e.target.value); setCurrentPage(1); }, []);
+  const handleFilterType = useCallback((val) => {
+    setFilterType(val);
+    setFilterSelectType(""); // reset SelectType filter when MainType changes
+    setCurrentPage(1);
+  }, []);
+  const handleFilterSelectType = useCallback((val) => { setFilterSelectType(val); setCurrentPage(1); }, []);
+  const handleSearch           = useCallback((e)   => { setSearch(e.target.value); setCurrentPage(1); }, []);
 
   // ── Delete ────────────────────────────────────────────────────────────────
   const handleDelete = useCallback(async (id) => {
@@ -134,7 +149,7 @@ export default function TemplateHome() {
 
   const handleEdit = useCallback((id) => navigate(`/templates/edit/${id}`), [navigate]);
 
-  const isFiltered = !!(filterType || search.trim());
+  const isFiltered = !!(filterType || filterSelectType || search.trim());
 
   return (
     <div className="p-4 md:p-6 max-w-7xl mx-auto space-y-6">
@@ -201,7 +216,7 @@ export default function TemplateHome() {
           </div>
 
           {/* Filter bar */}
-          <div className="flex flex-col sm:flex-row items-stretch sm:items-center gap-3">
+          <div className="flex flex-col sm:flex-row items-stretch sm:items-center gap-3 flex-wrap">
             {/* Search */}
             <div className="relative flex-1 max-w-sm">
               <Magnifier className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-gray-400 pointer-events-none" />
@@ -209,7 +224,7 @@ export default function TemplateHome() {
                 type="text"
                 value={search}
                 onChange={handleSearch}
-                placeholder="Search by type, serial…"
+                placeholder="Search by type, subtype, serial…"
                 className="w-full pl-9 pr-4 py-2 rounded-xl border border-gray-200 dark:border-gray-700 bg-white dark:bg-gray-800 text-sm text-gray-700 dark:text-gray-300 placeholder-gray-400 focus:outline-none focus:ring-2 focus:ring-violet-400/30 focus:border-violet-400 transition-all"
               />
             </div>
@@ -229,8 +244,41 @@ export default function TemplateHome() {
               <ChevronDown className="pointer-events-none absolute right-3 top-1/2 -translate-y-1/2 w-4 h-4 text-gray-400" />
             </div>
 
+            {/* SelectType filter — shows options based on chosen MainType */}
+            <div className="relative">
+              <select
+                value={filterSelectType}
+                onChange={(e) => handleFilterSelectType(e.target.value)}
+                className="pl-4 pr-9 py-2 rounded-xl border border-gray-200 dark:border-gray-700 bg-white dark:bg-gray-800 text-sm text-gray-700 dark:text-gray-300 focus:outline-none focus:ring-2 focus:ring-violet-400/30 focus:border-violet-400 transition-all appearance-none cursor-pointer"
+              >
+                <option value="">
+                  {filterType ? `All ${filterType} Subtypes` : "All Select Types"}
+                </option>
+                {selectTypeOptions.map((t) => (
+                  <option key={t.value} value={t.value}>{t.name}</option>
+                ))}
+              </select>
+              <ChevronDown className="pointer-events-none absolute right-3 top-1/2 -translate-y-1/2 w-4 h-4 text-gray-400" />
+            </div>
+
+            {/* Active filter chips */}
+            <div className="flex items-center gap-2 flex-wrap">
+              {filterType && (
+                <span className="flex items-center gap-1.5 px-2.5 py-1 rounded-full bg-violet-50 dark:bg-violet-500/10 text-violet-700 dark:text-violet-400 text-xs font-medium border border-violet-100 dark:border-violet-500/20">
+                  {filterType}
+                  <button onClick={() => handleFilterType("")} className="hover:opacity-70 transition-opacity font-bold leading-none">×</button>
+                </span>
+              )}
+              {filterSelectType && (
+                <span className="flex items-center gap-1.5 px-2.5 py-1 rounded-full bg-sky-50 dark:bg-sky-500/10 text-sky-700 dark:text-sky-400 text-xs font-medium border border-sky-100 dark:border-sky-500/20">
+                  {selectTypeOptions.find((o) => o.value === filterSelectType)?.name || filterSelectType}
+                  <button onClick={() => handleFilterSelectType("")} className="hover:opacity-70 transition-opacity font-bold leading-none">×</button>
+                </span>
+              )}
+            </div>
+
             {/* Result count */}
-            <span className="text-sm text-gray-400 dark:text-gray-500 flex-shrink-0">
+            <span className="text-sm text-gray-400 dark:text-gray-500 flex-shrink-0 sm:ml-auto">
               {filtered.length} result{filtered.length !== 1 ? "s" : ""}
               {totalPages > 1 && ` · Page ${currentPage} of ${totalPages}`}
             </span>

@@ -4,7 +4,7 @@ import { PencilToLine, TrashBin, Eye, Ellipsis } from "@gravity-ui/icons";
 // ── Single template card ──────────────────────────────────────────────────────
 const TemplateCard = memo(function TemplateCard({ tpl, onEdit, onDelete, isDeleting }) {
   const {
-    id, serial, MainType, SelectType, Active, Launched,
+    id, serial, MainType, SelectType, Subtype, Active, Launched,
     Date: tplDate, GraphicsLink, Showcase_url,
   } = tpl;
 
@@ -59,6 +59,11 @@ const TemplateCard = memo(function TemplateCard({ tpl, onEdit, onDelete, isDelet
               {SelectType.replace(/_/g, " ")}
             </span>
           )}
+          {Subtype && (
+            <span className="px-2.5 py-0.5 rounded-full text-[11px] font-medium bg-amber-50 dark:bg-amber-500/10 text-amber-700 dark:text-amber-400 border border-amber-100 dark:border-amber-500/20">
+              {Subtype}
+            </span>
+          )}
         </div>
 
         {/* Meta row */}
@@ -96,7 +101,7 @@ const TemplateCard = memo(function TemplateCard({ tpl, onEdit, onDelete, isDelet
           Edit
         </button>
         <button
-          // onClick={() => onDelete(id)}
+          onClick={() => onDelete(id)}
           disabled={isDeleting}
           className="flex items-center gap-1.5 px-3 py-1.5 rounded-lg text-xs font-medium text-gray-500 dark:text-gray-400 hover:text-red-500 hover:bg-red-50 dark:hover:bg-red-500/10 transition-colors disabled:opacity-50"
         >
@@ -191,8 +196,8 @@ export function Pagination({ currentPage, totalPages, onPageChange }) {
 }
 
 // ── List wrapper ──────────────────────────────────────────────────────────────
-export default function TempHome({ templates, onEdit, onDelete, deletingId, filtered }) {
-  if (templates?.length === 0) {
+export default function Home({ templates, onEdit, onDelete, deletingId, filtered }) {
+  if (templates.length === 0) {
     return (
       <div className="grid grid-cols-1">
         <EmptyState filtered={filtered} />
@@ -202,10 +207,10 @@ export default function TempHome({ templates, onEdit, onDelete, deletingId, filt
 
   return (
     <div className="grid grid-cols-1 sm:grid-cols-2 xl:grid-cols-3 2xl:grid-cols-4 gap-4">
-      {templates?.map((tpl) => (
+      {templates.map((tpl) => (
         <TemplateCard
           key={tpl.id}
-          tpl={tpl}s
+          tpl={tpl}
           onEdit={onEdit}
           onDelete={onDelete}
           isDeleting={deletingId === tpl.id}

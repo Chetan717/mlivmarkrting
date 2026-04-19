@@ -16,7 +16,7 @@ import GraphiHome from "./Pages/Graphics/GraphiHome";
 import AddGraphics from "./Pages/Graphics/Form/AddGraphics";
 import EditGraphics from "./Pages/Graphics/Form/EditGraphics";
 import Marketingteam from "./Pages/Mteam/Marketingteam";
-import CouponCodeManager from "./Pages/Mteam/Couponcodemanager";
+import CouponCodeManager from "./Pages/Mteam/CouponCodeManager";
 import MainTeam from "./Pages/Mteam/MainTeam";
 
 function App() {

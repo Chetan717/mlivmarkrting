@@ -1,6 +1,6 @@
 import React, { useState, useCallback } from "react";
 import MarketingTeam from "./Marketingteam";
-import CouponCodeManager from "./Couponcodemanager";
+import CouponCodeManager from "./CouponCodeManager";
 
 const TABS = [
   {

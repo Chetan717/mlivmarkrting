@@ -6,6 +6,7 @@ import {
   LogoMicrosoftOffice,
   LayoutHeaderColumns,
   GeoPolygons,
+  ChartTreemap,
   Sack,
 } from "@gravity-ui/icons";
 import { useNavigate } from "react-router";
@@ -35,6 +36,12 @@ const NAV_ITEMS = [
     label: "App Graphics",
     id: "Graphics",
     link: "/graphics",
+  },
+   {
+    icon: ChartTreemap,
+    label: "Marketing",
+    id: "marketing",
+    link: "/marketing",
   },
   // { icon: Person, label: "Users", id: "users", link: "/users" },
   // { icon: Sack, label: "Payments", id: "payments", link: "/payments" },

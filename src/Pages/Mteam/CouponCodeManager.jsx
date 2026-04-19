@@ -204,18 +204,7 @@ function ConfirmDialog({ message, onConfirm, onCancel }) {
   );
 }
 
-// ─────────────────────────────────────────────────────────────────────────────
-// ✅ KEY FIX: FormRow lives OUTSIDE CouponCodeManager at module scope.
-//
-//    The bug: when FormRow was defined as a const INSIDE CouponCodeManager,
-//    React saw a completely new component type on every parent render
-//    (every keystroke). It unmounted the old row and mounted a fresh one,
-//    destroying the focused <input> each time → focus lost after 1 char.
-//
-//    The fix: move it to module level and pass all needed data as props.
-//    React now reconciles the same component type and just updates its props,
-//    so the DOM input element stays mounted and focus is preserved.
-// ─────────────────────────────────────────────────────────────────────────────
+
 function FormRow({ form, errors, mteam, saving, setField, onSave, onCancel }) {
   return (
     <tr className="bg-indigo-50/60 dark:bg-indigo-900/10">
@@ -445,7 +434,7 @@ export default function CouponCodeManager() {
 
   // ── Render ─────────────────────────────────────────────────────────────────
   return (
-    <div className="p-4 md:p-6">
+    <div className="p-4 h-screen md:p-6">
       {confirmFor && (
         <ConfirmDialog
           message={`Delete coupon "${confirmFor.code}"? This cannot be undone.`}
@@ -454,7 +443,7 @@ export default function CouponCodeManager() {
         />
       )}
 
-      <div className="bg-white dark:bg-gray-900 rounded-2xl shadow-sm border border-gray-100 dark:border-gray-800 overflow-hidden">
+      <div className="bg-white h-full  dark:bg-gray-900 rounded-2xl shadow-sm border border-gray-100 dark:border-gray-800 overflow-hidden">
 
         {/* Header */}
         <div className="flex items-center justify-between px-5 py-4 border-b border-gray-100 dark:border-gray-800">
@@ -480,7 +469,7 @@ export default function CouponCodeManager() {
         </div>
 
         {/* Table */}
-        <div className="overflow-x-auto">
+        <div className="overflow-x-auto ">
           <table className="w-full text-sm text-left">
             <thead>
               <tr className="bg-gray-50 dark:bg-gray-800/60 border-b border-gray-100 dark:border-gray-800">

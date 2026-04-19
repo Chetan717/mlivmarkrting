@@ -1,13 +1,3 @@
-// ============================================================
-//  MarketingTeam.jsx
-//  Optimizations:
-//   • Optimistic add / edit / delete (no full refetch on mutate)
-//   • useMemo for filtered + paginated slices
-//   • useCallback on all handlers
-//   • Client-side search filter
-//   • Pagination with page-size selector
-// ============================================================
-
 import { useState, useEffect, useCallback, useMemo } from "react";
 
 import {
@@ -26,7 +16,7 @@ const PAGE_OPTIONS = [5, 10, 20, 50];
 
 const DEFAULT_FORM = {
   name: "", mobile: "", password: "",
-  assign_coupon_id: "", active: true,
+  assign_coupon_id: "0", active: true,
 };
 
 // ── Validation ─────────────────────────────────────────────
@@ -164,11 +154,11 @@ function InputRow({ initial, accentClass, onSave, onCancel }) {
       </InlineCell>
 
       <InlineCell error={errors.assign_coupon_id}>
-        <Input size="sm" placeholder="Coupon ID"
+        {/* <Input size="sm"  placeholder="Coupon ID"
           value={form.assign_coupon_id}
           // isDisabled={true}
           onChange={(e) => set("assign_coupon_id", e.target.value.toUpperCase())}
-          className="min-w-[100px] font-mono" />
+          className="min-w-[100px] font-mono" /> */}
       </InlineCell>
 
       <Table.Cell>

@@ -15,6 +15,9 @@ import TempHome from "./Pages/Templates/TempHome";
 import GraphiHome from "./Pages/Graphics/GraphiHome";
 import AddGraphics from "./Pages/Graphics/Form/AddGraphics";
 import EditGraphics from "./Pages/Graphics/Form/EditGraphics";
+import Marketingteam from "./Pages/Mteam/Marketingteam";
+import CouponCodeManager from "./Pages/Mteam/Couponcodemanager";
+import MainTeam from "./Pages/Mteam/MainTeam";
 
 function App() {
   return (
@@ -35,7 +38,7 @@ function App() {
         element={
           <ProtectedRoute>
             <Layout>
-              <TemplateHome/>
+              <TemplateHome />
             </Layout>
           </ProtectedRoute>
         }
@@ -75,7 +78,7 @@ function App() {
         element={
           <ProtectedRoute>
             <Layout>
-             <TemplateHome/>
+              <TemplateHome />
             </Layout>
           </ProtectedRoute>
         }
@@ -101,12 +104,12 @@ function App() {
         }
       />
 
-       <Route
+      <Route
         path="/graphics"
         element={
           <ProtectedRoute>
             <Layout>
-           <GraphiHome/>
+              <GraphiHome />
             </Layout>
           </ProtectedRoute>
         }
@@ -116,7 +119,7 @@ function App() {
         element={
           <ProtectedRoute>
             <Layout>
-              <AddGraphics/>
+              <AddGraphics />
             </Layout>
           </ProtectedRoute>
         }
@@ -126,7 +129,18 @@ function App() {
         element={
           <ProtectedRoute>
             <Layout>
-              <EditGraphics/>
+              <EditGraphics />
+            </Layout>
+          </ProtectedRoute>
+        }
+      />
+
+      <Route
+        path="/marketing"
+        element={
+          <ProtectedRoute>
+            <Layout>
+              <MainTeam />
             </Layout>
           </ProtectedRoute>
         }

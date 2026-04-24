@@ -43,6 +43,12 @@ const NAV_ITEMS = [
     id: "marketing",
     link: "/marketing",
   },
+   {
+    icon: ChartTreemap,
+    label: "Remove Background API",
+    id: "removebg",
+    link: "/removebg",
+  },
   // { icon: Person, label: "Users", id: "users", link: "/users" },
   // { icon: Sack, label: "Payments", id: "payments", link: "/payments" },
 ];

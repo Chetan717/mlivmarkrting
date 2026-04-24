@@ -18,6 +18,7 @@ import EditGraphics from "./Pages/Graphics/Form/EditGraphics";
 import Marketingteam from "./Pages/Mteam/Marketingteam";
 import CouponCodeManager from "./Pages/Mteam/CouponCodeManager";
 import MainTeam from "./Pages/Mteam/MainTeam";
+import Removebg from "./Pages/Removebg/Removebg";
 
 function App() {
   return (
@@ -141,6 +142,16 @@ function App() {
           <ProtectedRoute>
             <Layout>
               <MainTeam />
+            </Layout>
+          </ProtectedRoute>
+        }
+      />
+      <Route
+        path="/removebg"
+        element={
+          <ProtectedRoute>
+            <Layout>
+              <Removebg />
             </Layout>
           </ProtectedRoute>
         }

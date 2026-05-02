@@ -140,6 +140,18 @@ export function GraphicsLinkRow({ item, idx, total, onChange, onRemove, selType 
               <div className="flex flex-col gap-1.5">
                 <FieldLabel required>Background Image URL</FieldLabel>
                 <ImageUploadInput value={item.url || ""} onChange={(v) => update("url", v)} storagePath="templates/graphics" placeholder="Paste URL or click ↑ to upload" />
+                {item.suggestionImage?.trim() && (
+                  <button
+                    type="button"
+                    onClick={() => update("url", item.suggestionImage)}
+                    className="self-start px-3 py-2 rounded-xl border border-violet-200 dark:border-violet-600 bg-violet-50 dark:bg-violet-500/10 text-violet-700 dark:text-violet-200 text-sm font-medium hover:bg-violet-100 dark:hover:bg-violet-500/20 transition-colors"
+                  >
+                    Use suggestion image as background
+                  </button>
+                )}
+                {item.suggestionImage?.trim() && !item.url?.trim() && (
+                  <p className="text-xs text-gray-400">Tip: Click above to reuse the suggestion image for the background instead of uploading it again.</p>
+                )}
               </div>
 
               {/* nameImageUrl — ONLY Achievements / Achievements_B */}

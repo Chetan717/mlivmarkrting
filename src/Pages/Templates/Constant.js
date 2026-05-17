@@ -102,11 +102,31 @@ export const HIDE_POSITION_TYPES = ["Festival", "Achievements"];
 export const defaultPosition = (selType) =>
   selType === "Achievements" ? "right" : "left";
 
-/** Filter dropdown labels */
-export const filterLabels = (selType) =>
-  selType === "Meeting"
-    ? { show: "Host", hide: "Without Host" }
-    : { show: "Show", hide: "Hide" };
+/** Default Filter Options (Show/Hide) */
+export const DEFAULT_FILTER_OPTIONS = [
+  { name: "Show", value: "true" },
+  { name: "Hide", value: "false" },
+];
+
+/** Meeting Filter Options (Host/Without Host) */
+export const MEETING_FILTER_OPTIONS = [
+  { name: "Host", value: "true" },
+  { name: "Without Host", value: "false" },
+];
+
+/** Welcome/Closing Filter Options (SP/BV/PV) */
+export const WELCOME_CLOSING_FILTER_OPTIONS = [
+  { name: "SP", value: "SP" },
+  { name: "BV", value: "BV" },
+  { name: "PV", value: "PV" },
+];
+
+/** Get filter options based on selType */
+export const getFilterOptions = (selType) => {
+  if (selType === "Meeting") return MEETING_FILTER_OPTIONS;
+  if (selType === "Welcome_Closing") return WELCOME_CLOSING_FILTER_OPTIONS;
+  return DEFAULT_FILTER_OPTIONS;
+}
 
 /** Get SelectType options for a given MainType */
 export const getSelectTypes = (mainType) =>

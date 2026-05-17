@@ -3,7 +3,7 @@ import {
   TrashBin, ChevronDown, ChevronUp, CirclePlus,
 } from "@gravity-ui/icons";
 import ImageUploadInput from "../../Utils/Imageuploadinput";
-import { POSITION_OPTIONS, emptyGraphicsLink } from "./Constant";
+import { POSITION_OPTIONS, emptyGraphicsLink, getFilterOptions } from "./Constant";
 
 
 // ── Style constants ───────────────────────────────────────────────────────────
@@ -70,8 +70,7 @@ export function GraphicsLinkRow({ item, idx, total, onChange, onRemove, selType 
   const canShowNameImage   = isAchievement(selType);
   const canShowBannerId    = showBannerId(selType);
   const canShowPosition    = showPosition(selType);
-  const filterLabelA       = isMeeting(selType) ? "Host"         : "Show";
-  const filterLabelB       = isMeeting(selType) ? "Without Host" : "Hide";
+  const filterOptions      = getFilterOptions(selType);
   const nameImageLabel     = isAchievement(selType) ? "Badge / Graphics For Achievement" : `${selType || "Type"} Graphic`;
   const bannerLabel        = isAchievement(selType) ? "Add Frame For Middle Image" : "Add Badge For Image";
   const bannerPreviewLabel = isAchievement(selType) ? "Frame For Image"            : "Badge For Image";
@@ -99,9 +98,10 @@ export function GraphicsLinkRow({ item, idx, total, onChange, onRemove, selType 
         )}
         {item.Filter !== undefined && item.Filter !== "" && (
           <span className="px-2 py-0.5 rounded-full text-[10px] font-semibold bg-gray-100 dark:bg-gray-800 text-gray-500 dark:text-gray-400">
-            {item.Filter === "true" ? filterLabelA : filterLabelB}
+            {filterOptions.find(opt => opt.value === item.Filter)?.name || item.Filter}
           </span>
         )}
+
         <span className="text-gray-400 flex-shrink-0">
           {open ? <ChevronUp className="w-4 h-4" /> : <ChevronDown className="w-4 h-4" />}
         </span>
@@ -189,18 +189,22 @@ export function GraphicsLinkRow({ item, idx, total, onChange, onRemove, selType 
                 </div>
               )}
 
-              {/* Filter — always shown, options change for Meeting */}
+              {/* Filter — always shown, options change based on type */}
               <div className="flex flex-col gap-1.5">
                 <FieldLabel>
                   Filter{" "}
                   {isMeeting(selType) && (
                     <span className="text-[11px] text-gray-400 font-normal">(Host visibility)</span>
                   )}
+                  {selType === "Welcome_Closing" && (
+                    <span className="text-[11px] text-gray-400 font-normal">(Select campaign)</span>
+                  )}
                 </FieldLabel>
                 <div className="relative">
                   <select value={item.Filter ?? "true"} onChange={(e) => update("Filter", e.target.value)} className={selectCls}>
-                    <option value="true">{filterLabelA}</option>
-                    <option value="false">{filterLabelB}</option>
+                    {filterOptions.map((opt) => (
+                      <option key={opt.value} value={opt.value}>{opt.name}</option>
+                    ))}
                   </select>
                   <ChevronDown className="pointer-events-none absolute right-3 top-1/2 -translate-y-1/2 w-4 h-4 text-gray-400" />
                 </div>

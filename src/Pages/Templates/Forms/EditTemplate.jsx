@@ -206,7 +206,7 @@ export default function EditTemplate() {
         ...form, serial: Number(form.serial) || 0, GraphicsLink: cleanGraphics, updatedAt: serverTimestamp(),
       });
       setSuccess(true);
-      // setTimeout(() => navigate("/templates"), 1200);
+      setTimeout(() => navigate("/templates"), 1200);
     } catch (err) {
       console.error(err);
       setError("Failed to update template.");
@@ -217,7 +217,7 @@ export default function EditTemplate() {
     setDeleteLoading(true);
     try {
       await deleteDoc(doc(db, "mlmtemplate", id));
-      // navigate("/templates");
+      navigate("/templates");
     } catch (err) {
       console.error(err);
       setError("Delete failed."); setShowDelete(false);

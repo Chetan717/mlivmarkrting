@@ -147,7 +147,7 @@ export default function AddTemplate() {
         createdAt: serverTimestamp(), updatedAt: serverTimestamp(),
       });
       setSuccess(true);
-      // setTimeout(() => navigate("/templates"), 1200);
+      setTimeout(() => navigate("/templates"), 1200);
     } catch (err) {
       console.error(err);
       setError("Failed to save template. Please try again.");

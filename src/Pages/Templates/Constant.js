@@ -29,14 +29,14 @@ export const GENERAL_SELECT_TYPES = [
   { name: "Achievements B", value: "Achievements_B" },
   { name: "Income", value: "Income" },
   { name: "Welcome / Closing", value: "Welcome_Closing" },
-  { name: "Meeting", value: "Meeting" },
+  // { name: "Meeting", value: "Meeting" },
   { name: "Anniversary & Birthday", value: "Anniversary_Birthday" },
   { name: "Greeting & Wishes", value: "Greeting_Wishes" },
   {
     name: "Thank You (Birthday & Anniversary)",
     value: "ThankYou_Birthday_Anniversary",
-  },
-  { name: "Capping", value: "Capping" },
+  }
+  // { name: "Capping", value: "Capping" },
 ];
 
 export const POSITION_OPTIONS = [

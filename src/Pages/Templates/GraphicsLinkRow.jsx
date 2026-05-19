@@ -20,7 +20,7 @@ export function FieldLabel({ children, required }) {
 
 // ── Condition helpers — mirrors old GraphicsLinkSingle logic exactly ──────────
 // selType === 'Achievements' || 'Achievements-B'  →  show nameImageUrl
-const isAchievement = (t) => t === "Achievements" || t === "Achievements_B";
+const isAchievement = (t) => t === "Achievements" || t === "Achievements_B" || t === "Income";
 
 // hide bannerId for these types
 const HIDE_BANNER = ["Festival", "Today_Trending", "ThankYou_Banner_B", "ThankYou_Banner", "Meeting"];

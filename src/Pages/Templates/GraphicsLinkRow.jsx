@@ -1,14 +1,22 @@
 import { useState, useCallback } from "react";
 import {
-  TrashBin, ChevronDown, ChevronUp, CirclePlus,
+  TrashBin,
+  ChevronDown,
+  ChevronUp,
+  CirclePlus,
 } from "@gravity-ui/icons";
 import ImageUploadInput from "../../Utils/Imageuploadinput";
-import { POSITION_OPTIONS, emptyGraphicsLink, getFilterOptions } from "./Constant";
-
+import {
+  POSITION_OPTIONS,
+  emptyGraphicsLink,
+  getFilterOptions,
+} from "./Constant";
 
 // ── Style constants ───────────────────────────────────────────────────────────
-export const selectCls = "w-full px-3.5 py-2.5 rounded-xl border border-gray-200 dark:border-gray-700 bg-white dark:bg-gray-800/60 text-gray-800 dark:text-gray-200 text-sm focus:outline-none focus:ring-2 focus:ring-violet-400/40 focus:border-violet-400 transition-all appearance-none cursor-pointer";
-export const inputCls  = "w-full px-3.5 py-2.5 rounded-xl border border-gray-200 dark:border-gray-700 bg-white dark:bg-gray-800/60 text-gray-800 dark:text-gray-200 placeholder-gray-400 dark:placeholder-gray-600 text-sm focus:outline-none focus:ring-2 focus:ring-violet-400/40 focus:border-violet-400 transition-all";
+export const selectCls =
+  "w-full px-3.5 py-2.5 rounded-xl border border-gray-200 dark:border-gray-700 bg-white dark:bg-gray-800/60 text-gray-800 dark:text-gray-200 text-sm focus:outline-none focus:ring-2 focus:ring-violet-400/40 focus:border-violet-400 transition-all appearance-none cursor-pointer";
+export const inputCls =
+  "w-full px-3.5 py-2.5 rounded-xl border border-gray-200 dark:border-gray-700 bg-white dark:bg-gray-800/60 text-gray-800 dark:text-gray-200 placeholder-gray-400 dark:placeholder-gray-600 text-sm focus:outline-none focus:ring-2 focus:ring-violet-400/40 focus:border-violet-400 transition-all";
 
 export function FieldLabel({ children, required }) {
   return (
@@ -20,17 +28,25 @@ export function FieldLabel({ children, required }) {
 
 // ── Condition helpers — mirrors old GraphicsLinkSingle logic exactly ──────────
 // selType === 'Achievements' || 'Achievements-B'  →  show nameImageUrl
-const isAchievement = (t) => t === "Achievements" || t === "Achievements_B" || t === "Income";
+const isAchievement = (t) =>
+  t === "Achievements" || t === "Achievements_B" ;
+const isIncome = (t) => t === "Income";
 
 // hide bannerId for these types
-const HIDE_BANNER = ["Festival", "Today_Trending", "ThankYou_Banner_B", "ThankYou_Banner", "Meeting"];
-const showBannerId  = (t) => !HIDE_BANNER.includes(t);
+const HIDE_BANNER = [
+  "Festival",
+  "Today_Trending",
+  "ThankYou_Banner_B",
+  "ThankYou_Banner",
+  "Meeting",
+];
+const showBannerId = (t) => !HIDE_BANNER.includes(t);
 
 // hide position for Festival + Achievements
-const showPosition  = (t) => !["Festival", "Achievements"].includes(t);
+const showPosition = (t) => !["Festival", "Achievements"].includes(t);
 
 // Filter options change for Meeting
-const isMeeting     = (t) => t === "Meeting";
+const isMeeting = (t) => t === "Meeting";
 
 // ── Small preview tile ────────────────────────────────────────────────────────
 function PreviewTile({ src, label }) {
@@ -51,33 +67,54 @@ function PreviewTile({ src, label }) {
           <span className="w-4 h-4 border-2 border-violet-300 border-t-violet-500 rounded-full animate-spin" />
         )}
       </div>
-      <p className="text-[10px] text-gray-400 text-center leading-tight max-w-[64px] truncate">{label}</p>
+      <p className="text-[10px] text-gray-400 text-center leading-tight max-w-[64px] truncate">
+        {label}
+      </p>
     </div>
   );
 }
 
 // ── Single row (accordion) ────────────────────────────────────────────────────
-export function GraphicsLinkRow({ item, idx, total, onChange, onRemove, selType }) {
+export function GraphicsLinkRow({
+  item,
+  idx,
+  total,
+  onChange,
+  onRemove,
+  selType,
+}) {
   const [open, setOpen] = useState(idx === 0);
-  const [pass, setPass] = useState("");   // password per-row, local state only
+  const [pass, setPass] = useState(""); // password per-row, local state only
 
   const update = useCallback(
     (field, val) => onChange(item._key, field, val),
-    [item._key, onChange]
+    [item._key, onChange],
   );
 
   // ── Derived from selType ──────────────────────────────────────────────────
-  const canShowNameImage   = isAchievement(selType);
-  const canShowBannerId    = showBannerId(selType);
-  const canShowPosition    = showPosition(selType);
-  const filterOptions      = getFilterOptions(selType);
-  const nameImageLabel     = isAchievement(selType) ? "Badge / Graphics For Achievement" : `${selType || "Type"} Graphic`;
-  const bannerLabel        = isAchievement(selType) ? "Add Frame For Middle Image" : "Add Badge For Image";
-  const bannerPreviewLabel = isAchievement(selType) ? "Frame For Image"            : "Badge For Image";
+const canShowNameImage = isAchievement(selType) || isIncome(selType);
+  const canShowBannerId = showBannerId(selType);
+  const canShowPosition = showPosition(selType);
+  const filterOptions = getFilterOptions(selType);
+
+  const nameImageLabel = isAchievement(selType)
+    ? "Badge / Graphics For Achievement"
+    : isIncome(selType)
+      ? "Proof Frame for Income"
+      : `${selType || "Type"} Graphic`;
+  const bannerLabel = isAchievement(selType)
+    ? "Add Frame For Middle Image"
+    : isIncome(selType)
+      ? "Add Badge Photo for Income"
+      : "Add Badge For Image";
+  const bannerPreviewLabel = isAchievement(selType)
+    ? "Frame For Image"
+    : isIncome(selType)
+      ? "Badge Photo for Income"
+      : "Badge For Image";
 
   return (
     <div className="border border-gray-200 dark:border-gray-700 rounded-xl overflow-hidden">
-
       {/* Header */}
       <div
         className="flex items-center gap-3 px-4 py-3 bg-gray-50 dark:bg-gray-800/60 cursor-pointer select-none"
@@ -87,23 +124,32 @@ export function GraphicsLinkRow({ item, idx, total, onChange, onRemove, selType 
           {idx + 1}
         </span>
         <span className="flex-1 text-sm font-medium text-gray-700 dark:text-gray-300 truncate">
-          { `Graphics Link ${idx + 1}`}
+          {`Graphics Link ${idx + 1}`}
         </span>
         {canShowPosition && item.position && (
-          <span className={`px-2 py-0.5 rounded-full text-[10px] font-semibold ${
-            item.position === "left"
-              ? "bg-sky-50 text-sky-600 dark:bg-sky-500/10 dark:text-sky-400"
-              : "bg-amber-50 text-amber-600 dark:bg-amber-500/10 dark:text-amber-400"
-          }`}>{item.position}</span>
+          <span
+            className={`px-2 py-0.5 rounded-full text-[10px] font-semibold ${
+              item.position === "left"
+                ? "bg-sky-50 text-sky-600 dark:bg-sky-500/10 dark:text-sky-400"
+                : "bg-amber-50 text-amber-600 dark:bg-amber-500/10 dark:text-amber-400"
+            }`}
+          >
+            {item.position}
+          </span>
         )}
         {item.Filter !== undefined && item.Filter !== "" && (
           <span className="px-2 py-0.5 rounded-full text-[10px] font-semibold bg-gray-100 dark:bg-gray-800 text-gray-500 dark:text-gray-400">
-            {filterOptions.find(opt => opt.value === item.Filter)?.name || item.Filter}
+            {filterOptions.find((opt) => opt.value === item.Filter)?.name ||
+              item.Filter}
           </span>
         )}
 
         <span className="text-gray-400 flex-shrink-0">
-          {open ? <ChevronUp className="w-4 h-4" /> : <ChevronDown className="w-4 h-4" />}
+          {open ? (
+            <ChevronUp className="w-4 h-4" />
+          ) : (
+            <ChevronDown className="w-4 h-4" />
+          )}
         </span>
       </div>
 
@@ -111,17 +157,19 @@ export function GraphicsLinkRow({ item, idx, total, onChange, onRemove, selType 
       {open && (
         <div className="p-4">
           <div className="flex gap-4">
-
             {/* ── Left: form fields ── */}
             <div className="flex-1 space-y-4 min-w-0">
-
               {/* Auto-generated ID — read-only display */}
               <div className="flex items-center gap-2 px-3 py-2 rounded-xl bg-gray-50 dark:bg-gray-800/60 border border-gray-200 dark:border-gray-700">
-                <span className="text-xs text-gray-400 dark:text-gray-500">ID</span>
+                <span className="text-xs text-gray-400 dark:text-gray-500">
+                  ID
+                </span>
                 <span className="text-sm font-mono font-semibold text-violet-600 dark:text-violet-400">
                   #{String(item.id)}
                 </span>
-                <span className="text-[10px] text-gray-400 dark:text-gray-500 ml-1">(auto-generated)</span>
+                <span className="text-[10px] text-gray-400 dark:text-gray-500 ml-1">
+                  (auto-generated)
+                </span>
               </div>
 
               {/* Income Name ID — still editable */}
@@ -133,13 +181,23 @@ export function GraphicsLinkRow({ item, idx, total, onChange, onRemove, selType 
               {/* Suggestion Image — always shown */}
               <div className="flex flex-col gap-1.5">
                 <FieldLabel>Suggestion Image URL</FieldLabel>
-                <ImageUploadInput value={item.suggestionImage || ""} onChange={(v) => update("suggestionImage", v)} storagePath="templates/suggestion" placeholder="Paste URL or click ↑ to upload" />
+                <ImageUploadInput
+                  value={item.suggestionImage || ""}
+                  onChange={(v) => update("suggestionImage", v)}
+                  storagePath="templates/suggestion"
+                  placeholder="Paste URL or click ↑ to upload"
+                />
               </div>
 
               {/* Background Image (url) — always shown */}
               <div className="flex flex-col gap-1.5">
                 <FieldLabel required>Background Image URL</FieldLabel>
-                <ImageUploadInput value={item.url || ""} onChange={(v) => update("url", v)} storagePath="templates/graphics" placeholder="Paste URL or click ↑ to upload" />
+                <ImageUploadInput
+                  value={item.url || ""}
+                  onChange={(v) => update("url", v)}
+                  storagePath="templates/graphics"
+                  placeholder="Paste URL or click ↑ to upload"
+                />
                 {item.suggestionImage?.trim() && (
                   <button
                     type="button"
@@ -150,7 +208,10 @@ export function GraphicsLinkRow({ item, idx, total, onChange, onRemove, selType 
                   </button>
                 )}
                 {item.suggestionImage?.trim() && !item.url?.trim() && (
-                  <p className="text-xs text-gray-400">Tip: Click above to reuse the suggestion image for the background instead of uploading it again.</p>
+                  <p className="text-xs text-gray-400">
+                    Tip: Click above to reuse the suggestion image for the
+                    background instead of uploading it again.
+                  </p>
                 )}
               </div>
 
@@ -158,7 +219,12 @@ export function GraphicsLinkRow({ item, idx, total, onChange, onRemove, selType 
               {canShowNameImage && (
                 <div className="flex flex-col gap-1.5 p-3 rounded-xl bg-violet-50/50 dark:bg-violet-500/5 border border-violet-100 dark:border-violet-500/20">
                   <FieldLabel>{nameImageLabel}</FieldLabel>
-                  <ImageUploadInput value={item.nameImageUrl || ""} onChange={(v) => update("nameImageUrl", v)} storagePath="templates/name-images" placeholder="Paste URL or click ↑ to upload" />
+                  <ImageUploadInput
+                    value={item.nameImageUrl || ""}
+                    onChange={(v) => update("nameImageUrl", v)}
+                    storagePath="templates/name-images"
+                    placeholder="Paste URL or click ↑ to upload"
+                  />
                 </div>
               )}
 
@@ -166,14 +232,24 @@ export function GraphicsLinkRow({ item, idx, total, onChange, onRemove, selType 
               {canShowBannerId && (
                 <div className="flex flex-col gap-1.5">
                   <FieldLabel>{bannerLabel}</FieldLabel>
-                  <ImageUploadInput value={String(item.bannerId || "")} onChange={(v) => update("bannerId", v)} storagePath="templates/badges" placeholder="Paste URL or click ↑ to upload" />
+                  <ImageUploadInput
+                    value={String(item.bannerId || "")}
+                    onChange={(v) => update("bannerId", v)}
+                    storagePath="templates/badges"
+                    placeholder="Paste URL or click ↑ to upload"
+                  />
                 </div>
               )}
 
               {/* Date */}
               <div className="flex flex-col gap-1.5">
                 <FieldLabel>Date</FieldLabel>
-                <input type="date" value={item.Date || ""} onChange={(e) => update("Date", e.target.value)} className={inputCls} />
+                <input
+                  type="date"
+                  value={item.Date || ""}
+                  onChange={(e) => update("Date", e.target.value)}
+                  className={inputCls}
+                />
               </div>
 
               {/* Position — hidden for Festival + Achievements */}
@@ -181,8 +257,16 @@ export function GraphicsLinkRow({ item, idx, total, onChange, onRemove, selType 
                 <div className="flex flex-col gap-1.5">
                   <FieldLabel>Image Placement</FieldLabel>
                   <div className="relative">
-                    <select value={item.position || "left"} onChange={(e) => update("position", e.target.value)} className={selectCls}>
-                      {POSITION_OPTIONS.map((o) => <option key={o.value} value={o.value}>{o.name}</option>)}
+                    <select
+                      value={item.position || "left"}
+                      onChange={(e) => update("position", e.target.value)}
+                      className={selectCls}
+                    >
+                      {POSITION_OPTIONS.map((o) => (
+                        <option key={o.value} value={o.value}>
+                          {o.name}
+                        </option>
+                      ))}
                     </select>
                     <ChevronDown className="pointer-events-none absolute right-3 top-1/2 -translate-y-1/2 w-4 h-4 text-gray-400" />
                   </div>
@@ -194,16 +278,26 @@ export function GraphicsLinkRow({ item, idx, total, onChange, onRemove, selType 
                 <FieldLabel>
                   Filter{" "}
                   {isMeeting(selType) && (
-                    <span className="text-[11px] text-gray-400 font-normal">(Host visibility)</span>
+                    <span className="text-[11px] text-gray-400 font-normal">
+                      (Host visibility)
+                    </span>
                   )}
                   {selType === "Welcome_Closing" && (
-                    <span className="text-[11px] text-gray-400 font-normal">(Select campaign)</span>
+                    <span className="text-[11px] text-gray-400 font-normal">
+                      (Select campaign)
+                    </span>
                   )}
                 </FieldLabel>
                 <div className="relative">
-                  <select value={item.Filter ?? "true"} onChange={(e) => update("Filter", e.target.value)} className={selectCls}>
+                  <select
+                    value={item.Filter ?? "true"}
+                    onChange={(e) => update("Filter", e.target.value)}
+                    className={selectCls}
+                  >
                     {filterOptions.map((opt) => (
-                      <option key={opt.value} value={opt.value}>{opt.name}</option>
+                      <option key={opt.value} value={opt.value}>
+                        {opt.name}
+                      </option>
                     ))}
                   </select>
                   <ChevronDown className="pointer-events-none absolute right-3 top-1/2 -translate-y-1/2 w-4 h-4 text-gray-400" />
@@ -214,7 +308,11 @@ export function GraphicsLinkRow({ item, idx, total, onChange, onRemove, selType 
               <div className="flex flex-col gap-1.5">
                 <FieldLabel>Status</FieldLabel>
                 <div className="relative">
-                  <select value={item.active ?? "true"} onChange={(e) => update("active", e.target.value)} className={selectCls}>
+                  <select
+                    value={item.active ?? "true"}
+                    onChange={(e) => update("active", e.target.value)}
+                    className={selectCls}
+                  >
                     <option value="true">Show</option>
                     <option value="false">Hide</option>
                   </select>
@@ -226,15 +324,15 @@ export function GraphicsLinkRow({ item, idx, total, onChange, onRemove, selType 
               {/* {total > 1 && (
                 <div className="pt-2 border-t border-gray-100 dark:border-gray-800 space-y-2">
                   {pass === "5688" ? ( */}
-                    <button
-                      type="button"
-                      onClick={() => onRemove(item._key)}
-                      className="flex items-center gap-2 px-4 py-2 rounded-xl bg-red-500 hover:bg-red-600 text-white text-sm font-semibold transition-colors"
-                    >
-                      <TrashBin className="w-4 h-4" />
-                      Confirm Delete This Entry
-                    </button>
-                  {/* ) : (
+              <button
+                type="button"
+                onClick={() => onRemove(item._key)}
+                className="flex items-center gap-2 px-4 py-2 rounded-xl bg-red-500 hover:bg-red-600 text-white text-sm font-semibold transition-colors"
+              >
+                <TrashBin className="w-4 h-4" />
+                Confirm Delete This Entry
+              </button>
+              {/* ) : (
                     <div className="flex flex-col gap-1.5">
                       <FieldLabel>Enter Password to Delete</FieldLabel>
                       <input
@@ -272,8 +370,12 @@ export function GraphicsLinkRow({ item, idx, total, onChange, onRemove, selType 
 export function GraphicsLinksField({ items, onChange, selType }) {
   const handleFieldChange = useCallback(
     (key, field, val) =>
-      onChange(items.map((item) => (item._key === key ? { ...item, [field]: val } : item))),
-    [items, onChange]
+      onChange(
+        items.map((item) =>
+          item._key === key ? { ...item, [field]: val } : item,
+        ),
+      ),
+    [items, onChange],
   );
 
   const handleAdd = useCallback(() => {
@@ -289,7 +391,7 @@ export function GraphicsLinksField({ items, onChange, selType }) {
 
   const handleRemove = useCallback(
     (key) => onChange(items.filter((i) => i._key !== key)),
-    [items, onChange]
+    [items, onChange],
   );
 
   return (

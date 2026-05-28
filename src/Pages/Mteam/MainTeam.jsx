@@ -566,7 +566,7 @@ function ErrorScreen({ message }) {
 const s = {
   root: {
     minHeight: "100vh",
-    background: "#000000",
+    background: "#fafafa",
     color: "#e2e8f0",
     fontFamily: "'DM Sans','Segoe UI',sans-serif",
     padding: "24px 20px 72px",
@@ -595,7 +595,7 @@ const s = {
   },
   headerTitle: {
     margin: 0, fontSize: "clamp(1.5rem,4vw,2.2rem)", fontWeight: 800,
-    background: "linear-gradient(130deg,#f1f5f9 35%,#818cf8)",
+    background: "linear-gradient(130deg,#1e293b 35%,#6366f1)",
     WebkitBackgroundClip: "text", WebkitTextFillColor: "transparent", lineHeight: 1.1,
   },
   headerSub: { margin: 0, color: "#475569", fontSize: 13 },

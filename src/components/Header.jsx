@@ -10,7 +10,7 @@ export default function Header({
 }) {
   const { theme, toggleTheme } = useGeneralData();
   const isDark = theme === "dark";
-
+// kd
   const handleMenuClick = () => {
     if (window.innerWidth < 768) {
       setMobileOpen((prev) => !prev);

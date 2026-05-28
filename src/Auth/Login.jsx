@@ -81,7 +81,7 @@ export function Login() {
         createdAt: userData.createdAt?.toDate?.()?.toISOString() ?? "",
       };
 
-      localStorage.setItem("user", JSON.stringify(userToStore));
+      localStorage.setItem("usermlm", JSON.stringify(userToStore));
       toast.success("User Login Successfully!");
 
       // ── Navigate to home ────────────────────────────────────

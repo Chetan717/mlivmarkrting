@@ -13,48 +13,17 @@ import { useNavigate } from "react-router";
 import logo from "../../public/mlmboo2.ico";
 const NAV_ITEMS = [
   { icon: Dots9, label: "Dashboard", id: "dashboard", link: "/" },
-  // {
-  //   icon: ChartAreaStacked,
-  //   label: "Analytics",
-  //   id: "analytics",
-  //   link: "/anlytics",
-  // },
-  {
-    icon: LogoMicrosoftOffice,
-    label: "Companies",
-    id: "companies",
-    link: "/companies",
-  },
-  {
-    icon: LayoutHeaderColumns,
-    label: "Templates",
-    id: "templates",
-    link: "/templates",
-  },
-  {
-    icon: GeoPolygons,
-    label: "App Graphics",
-    id: "Graphics",
-    link: "/graphics",
-  },
-   {
-    icon: ChartTreemap,
-    label: "Marketing",
-    id: "marketing",
-    link: "/marketing",
-  },
-   {
-    icon: ChartTreemap,
-    label: "Remove Background API",
-    id: "removebg",
-    link: "/removebg",
-  },
+// {
+//     icon: ChartTreemap,
+//     label: "Marketing",
+//     id: "marketing",
+//     link: "/marketing",
+//   }
   // { icon: Person, label: "Users", id: "users", link: "/users" },
   // { icon: Sack, label: "Payments", id: "payments", link: "/payments" },
 ];
 
 const BOTTOM_ITEMS = [
-  { icon: Hand, label: "Settings", id: "settings" },
   { icon: Hand, label: "Logout", id: "logout" },
 ];
 
@@ -69,7 +38,7 @@ export default function Sidebar({
   const navigate = useNavigate();
 
   const handleLogou = () => {
-    localStorage.removeItem("user"); // clears your token
+    localStorage.removeItem("usermlm"); // clears your token
     navigate("/login"); // instant redirect
   };
   const handleNav = (id) => {
@@ -122,12 +91,12 @@ export default function Sidebar({
             ].join(" ")}
             style={{ fontFamily: "'Syne', sans-serif" }}
           >
-            <span className="text-violet-500">MLMBOOSTER</span>
+            <span className="text-violet-500">MLMLIVE</span>
           </span>
 
           {/* Mobile close button */}
           <button
-            className="ml-auto md:hidden text-gray-400 hover:text-gray-600 dark:hover:text-gray-300 transition-colors"
+            className="ml-auto md:hidden text-accent hover:text-gray-600 dark:hover:text-gray-300 transition-colors"
             onClick={() => setMobileOpen(false)}
           >
             {/* <ArrowLeft className="w-[18px] h-[18px]" /> */}
@@ -253,24 +222,7 @@ export default function Sidebar({
           })}
 
           {/* User strip */}
-          <div className="flex items-center gap-3 px-3 py-2 mt-1">
-            <div className="min-w-[36px] w-9 h-9 rounded-xl bg-gradient-to-br from-pink-400 to-rose-500 flex items-center justify-center text-white font-bold text-sm flex-shrink-0">
-              A
-            </div>
-            <div
-              className={[
-                "overflow-hidden transition-all duration-300",
-                collapsed ? "md:opacity-0 md:w-0" : "opacity-100",
-              ].join(" ")}
-            >
-              <p className="text-sm font-semibold text-gray-800 dark:text-gray-200 leading-tight whitespace-nowrap">
-                Admin User
-              </p>
-              <p className="text-[11px] text-gray-400 dark:text-gray-500 whitespace-nowrap">
-                admin@mlm.com
-              </p>
-            </div>
-          </div>
+          
         </div>
       </aside>
     </>

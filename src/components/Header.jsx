@@ -39,7 +39,7 @@ export default function Header({
       </h1>
 
       {/* Right controls */}
-      <div className="flex items-center gap-2 ml-auto flex-shrink-0">
+      {/* <div className="flex items-center gap-2 ml-auto flex-shrink-0">
       
         <button
           onClick={toggleTheme}
@@ -53,17 +53,8 @@ export default function Header({
           )}
         </button>
 
-        {/* Profile chip */}
-        <button className="flex items-center gap-2 pl-2 pr-2.5 py-1 rounded-xl hover:bg-gray-100 dark:hover:bg-gray-800 transition-colors group">
-          <div className="w-7 h-7 rounded-lg bg-gradient-to-br from-pink-400 to-rose-500 flex items-center justify-center text-white font-bold text-xs flex-shrink-0">
-            A
-          </div>
-          <span className="hidden sm:block text-sm font-medium text-gray-700 dark:text-gray-300 whitespace-nowrap">
-            Admin
-          </span>
-          {/* <ChevronDown className="w-3.5 h-3.5 text-gray-400 group-hover:text-gray-600 dark:group-hover:text-gray-300 transition-colors" /> */}
-        </button>
-      </div>
+        
+      </div> */}
     </header>
   );
 }

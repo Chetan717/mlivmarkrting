@@ -150,7 +150,8 @@ export function MteamLogin() {
             <input
               type="password"
               value={password}
-              onChange={(e) => setPassword(e.target.value)}
+              onChange={(e) => setPassword(e.target.value.slice(0, 20))}
+              maxLength={20}
               placeholder="Your password"
               style={inputStyle}
             />

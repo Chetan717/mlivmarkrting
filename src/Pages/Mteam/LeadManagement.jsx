@@ -167,8 +167,8 @@ export default function LeadManagement({ mteamId, mobile, name }) {
   const [tabSearch, setTabSearch] = useState({ new:"", renewal:"", early:"", followup:"", completed:"" });
   const [earlyDays, setEarlyDays]             = useState(7);   // days-ahead window for Early Expiry tab
   const [subHistory, setSubHistory]           = useState({});  // { [mobile]: { loading, data:[] } }
-  const [leadFromDate, setLeadFromDate]       = useState(isoToday());
-  const [leadToDate, setLeadToDate]           = useState(isoToday());
+  const [leadFromDate, setLeadFromDate]       = useState("");
+  const [leadToDate, setLeadToDate]           = useState("");
 
   const setPage   = (tab, p) => setPages((prev) => ({ ...prev, [tab]: p }));
   const setSearch = (tab, v) => setTabSearch((p) => ({ ...p, [tab]: v }));
@@ -205,12 +205,32 @@ export default function LeadManagement({ mteamId, mobile, name }) {
       const allUsers       = usersSnap.docs.map((d) => ({ documentId: d.id, ...d.data() }));
 
       setNewUsers(allUsers.filter((u) => u.mobileNo && !subscribedMobi.has(u.mobileNo)));
+
+      // Group by mobileNo and keep only the latest subscription per customer
+      // "Latest" = the one with the highest (most future) expiry date
+      const latestSubPerMobile = {};
+      for (const s of mySubs) {
+        const mob = s.mobileNo;
+        if (!mob) continue;
+        const exp = parseDMY(s.expirydate);
+        if (!latestSubPerMobile[mob]) {
+          latestSubPerMobile[mob] = { sub: s, exp };
+        } else {
+          const prevExp = latestSubPerMobile[mob].exp;
+          // Pick whichever expiry date is later
+          if (exp && (!prevExp || exp > prevExp)) {
+            latestSubPerMobile[mob] = { sub: s, exp };
+          }
+        }
+      }
+      const latestSubs = Object.values(latestSubPerMobile).map((v) => v.sub);
+
       const now = today0();
-      setRenewals(mySubs.filter((s) => {
+      setRenewals(latestSubs.filter((s) => {
         const exp = parseDMY(s.expirydate);
         return s.Expire === true || (exp && exp < now);
       }));
-      setEarlyExp(mySubs.filter((s) => {
+      setEarlyExp(latestSubs.filter((s) => {
         const exp = parseDMY(s.expirydate);
         if (!exp) return false;
         const days = daysFromToday(exp);
@@ -922,6 +942,8 @@ export default function LeadManagement({ mteamId, mobile, name }) {
       activeTab === "new"     ? newUsers :
       activeTab === "renewal" ? renewals : earlyExp;
 
+    // For early tab: apply earlyDays window only (date range filter is not used)
+    // For renewal/new tabs: apply date range filter
     let fullList = (activeTab === "early"
       ? baseList.filter((s) => {
           const exp = parseDMY(s.expirydate);
@@ -929,20 +951,20 @@ export default function LeadManagement({ mteamId, mobile, name }) {
           const days = daysFromToday(exp);
           return days !== null && days >= 0 && days <= earlyDays;
         })
-      : baseList
-    ).filter((item) => {
-      if (!leadFromDate && !leadToDate) return true;
-      let itemDate;
-      if (activeTab === "new") {
-        itemDate = parseAnyDate(item.createdAt);
-      } else {
-        itemDate = parseDMY(item.expirydate);
-      }
-      if (!itemDate) return true;
-      if (leadFromDate) { const from = new Date(leadFromDate); from.setHours(0,0,0,0); if (itemDate < from) return false; }
-      if (leadToDate)   { const to   = new Date(leadToDate);   to.setHours(23,59,59,999); if (itemDate > to) return false; }
-      return true;
-    });
+      : baseList.filter((item) => {
+          if (!leadFromDate && !leadToDate) return true;
+          let itemDate;
+          if (activeTab === "new") {
+            itemDate = parseAnyDate(item.createdAt);
+          } else {
+            itemDate = parseDMY(item.expirydate);
+          }
+          if (!itemDate) return true;
+          if (leadFromDate) { const from = new Date(leadFromDate); from.setHours(0,0,0,0); if (itemDate < from) return false; }
+          if (leadToDate)   { const to   = new Date(leadToDate);   to.setHours(23,59,59,999); if (itemDate > to) return false; }
+          return true;
+        })
+    );
 
     if (activeTab === "new") {
       fullList = [...fullList].sort((a, b) => {
@@ -1172,7 +1194,7 @@ export default function LeadManagement({ mteamId, mobile, name }) {
       </div>
 
       {/* ── Tabs ───────────────────────────────────────────── */}
-      <div style={{ display:"flex", gap:8, flexWrap:"wrap", marginBottom:14 }}>
+      <div style={{ display:"flex", gap:8, flexWrap:"wrap", marginBottom:14, alignItems:"center" }}>
         {TAB_DEFS.map((t) => {
           const isActive = activeTab === t.id;
           const isRed    = t.id === "followup" && t.count > 0;
@@ -1194,6 +1216,22 @@ export default function LeadManagement({ mteamId, mobile, name }) {
             </button>
           );
         })}
+        <button
+          onClick={() => fetchAll()}
+          disabled={loading}
+          style={{
+            marginLeft:"auto", display:"flex", alignItems:"center", gap:6,
+            padding:"9px 16px", border:"1.5px solid #6366f150", borderRadius:10,
+            fontSize:13, fontWeight:700, cursor: loading ? "not-allowed" : "pointer",
+            background:"#6366f115", color:"#a5b4fc", transition:"all 0.15s",
+            opacity: loading ? 0.6 : 1,
+          }}
+        >
+          <span style={{ display:"inline-flex", animation: loading ? "spin 0.8s linear infinite" : "none" }}>
+            <IcRefresh />
+          </span>
+          {loading ? "Refreshing…" : "Refresh"}
+        </button>
       </div>
 
       {/* ── Early Expiry days filter ────────────────────── */}

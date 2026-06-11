@@ -192,7 +192,8 @@ export function UnifiedLogin() {
               <input
                 type={showPw ? "text" : "password"}
                 value={password}
-                onChange={(e) => setPassword(e.target.value)}
+                onChange={(e) => setPassword(e.target.value.slice(0, 20))}
+                maxLength={20}
                 placeholder="Your password or 4-digit PIN"
                 style={{ ...inputStyle, paddingRight:44 }}
                 autoComplete="current-password"

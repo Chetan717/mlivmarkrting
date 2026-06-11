@@ -24,7 +24,8 @@ const validate = (form) => {
   const e = {};
   if (!form.name.trim())               e.name             = "Required";
   if (!/^\d{10}$/.test(form.mobile))   e.mobile           = "10 digits";
-  if (form.password.length < 6)        e.password         = "Min 6 chars";
+  if (!/^(?=.*[A-Za-z])(?=.*\d)(?=.*[^A-Za-z\d]).{10,}$/.test(form.password))
+    e.password = "Min 10 chars — letter + number + symbol";
   if (!form.assign_coupon_id.trim())   e.assign_coupon_id = "Required";
   return e;
 };
@@ -147,7 +148,7 @@ function InputRow({ initial, accentClass, onSave, onCancel }) {
       </InlineCell>
 
       <InlineCell error={errors.password}>
-        <Input size="sm" placeholder="Password" type="password"
+        <Input size="sm" placeholder="Min 10: letter+num+symbol" type="password"
           value={form.password}
           onChange={(e) => set("password", e.target.value)}
           className="min-w-[110px]" />

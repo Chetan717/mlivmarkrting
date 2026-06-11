@@ -1,36 +1,36 @@
-// Import the functions you need from the SDKs you need
 import { initializeApp } from "firebase/app";
 import { getAnalytics } from "firebase/analytics";
 import { getFirestore } from "firebase/firestore";
 import { getStorage } from "firebase/storage";
 
-// Your web app's Firebase configuration
-// const firebaseConfig = {
-//   apiKey: "AIzaSyAZ-HEbjGAy6gKPXxFcrdNwKypVk2NXv2A",
-//   authDomain: "mlmbooster.firebaseapp.com",
-//   projectId: "mlmbooster",
-//   storageBucket: "mlmbooster.firebasestorage.app",
-//   messagingSenderId: "649090963301",
-//   appId: "1:649090963301:web:83247d75d046e6fb46b38c",
-//   measurementId: "G-C3FTH3Q87N",
-// };
+// Firebase config is loaded from environment variables.
+// Copy .env.example → .env and fill in your values for local development.
+// On Replit, set these in the Secrets / Environment Variables panel.
 const firebaseConfig = {
-  apiKey: "AIzaSyB8i48UiJ9YJ1w9_e-cwthvbqB94eNLulc",
-  authDomain: "mlmbooster-a4887.firebaseapp.com",
-  projectId: "mlmbooster-a4887",
-  storageBucket: "mlmbooster-a4887.firebasestorage.app",
-  messagingSenderId: "535257539526",
-  appId: "1:535257539526:web:13cbba2f093fcf277088c7",
-  measurementId: "G-YB76LFZQ5X"
+  apiKey:            import.meta.env.VITE_FIREBASE_API_KEY,
+  authDomain:        import.meta.env.VITE_FIREBASE_AUTH_DOMAIN,
+  projectId:         import.meta.env.VITE_FIREBASE_PROJECT_ID,
+  storageBucket:     import.meta.env.VITE_FIREBASE_STORAGE_BUCKET,
+  messagingSenderId: import.meta.env.VITE_FIREBASE_MESSAGING_SENDER_ID,
+  appId:             import.meta.env.VITE_FIREBASE_APP_ID,
+  measurementId:     import.meta.env.VITE_FIREBASE_MEASUREMENT_ID,
 };
 
-// Initialize Firebase
-const app = initializeApp(firebaseConfig);
+// Guard: warn clearly if any required key is missing
+const missing = Object.entries(firebaseConfig)
+  .filter(([, v]) => !v)
+  .map(([k]) => k);
+if (missing.length) {
+  console.error(
+    "[Firebase] Missing env variables:",
+    missing.join(", "),
+    "\nAdd them to your .env file or Replit Secrets panel."
+  );
+}
 
-// Initialize services
-const db = getFirestore(app);
+const app       = initializeApp(firebaseConfig);
+const db        = getFirestore(app);
 const analytics = getAnalytics(app);
-const storage = getStorage(app);
+const storage   = getStorage(app);
 
-// Export
 export { db, app, analytics, storage };

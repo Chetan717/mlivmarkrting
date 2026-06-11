@@ -19,11 +19,14 @@ const DEFAULT_FORM = {
   tabs: ["dashboard"],
 };
 
+const PASSWORD_REGEX = /^(?=.*[A-Za-z])(?=.*\d)(?=.*[^A-Za-z\d]).{10,}$/;
+
 function validate(form) {
   const e = {};
   if (!form.name.trim()) e.name = "Required";
   if (!/^\d{10}$/.test(form.mobile)) e.mobile = "10 digits required";
-  if (form.password.length < 4) e.password = "Min 4 characters";
+  if (!PASSWORD_REGEX.test(form.password))
+    e.password = "Min 10 chars with at least 1 letter, 1 number & 1 symbol";
   if (!form.tabs.length) e.tabs = "Assign at least one tab";
   return e;
 }
@@ -216,13 +219,35 @@ export default function TeamUserManagement({ mteamId }) {
 
             <div style={s.field}>
               <label style={s.label}>Password</label>
-              <input
-                style={{ ...s.input, ...(errors.password ? s.inputErr : {}) }}
-                placeholder="Password (min 4 chars)"
-                type="text"
-                value={form.password}
-                onChange={(e) => set("password", e.target.value)}
-              />
+              <div style={{ position:"relative" }}>
+                <input
+                  style={{ ...s.input, ...(errors.password ? s.inputErr : {}), paddingRight:40 }}
+                  placeholder="Min 10 chars, letter + number + symbol"
+                  type={form._showPw ? "text" : "password"}
+                  value={form.password}
+                  onChange={(e) => set("password", e.target.value)}
+                />
+                <button type="button" onClick={() => set("_showPw", !form._showPw)}
+                  style={{ position:"absolute", right:10, top:"50%", transform:"translateY(-50%)", background:"none", border:"none", cursor:"pointer", color:"#64748b", fontSize:12, padding:0 }}>
+                  {form._showPw ? "Hide" : "Show"}
+                </button>
+              </div>
+              {form.password && !PASSWORD_REGEX.test(form.password) && (
+                <div style={{ marginTop:5, display:"flex", gap:8, flexWrap:"wrap" }}>
+                  <span style={{ fontSize:11, padding:"2px 7px", borderRadius:5, background: form.password.length >= 10 ? "#10b98120" : "#ef444420", color: form.password.length >= 10 ? "#10b981" : "#ef4444" }}>
+                    {form.password.length >= 10 ? "✓" : "✗"} 10+ chars
+                  </span>
+                  <span style={{ fontSize:11, padding:"2px 7px", borderRadius:5, background: /[A-Za-z]/.test(form.password) ? "#10b98120" : "#ef444420", color: /[A-Za-z]/.test(form.password) ? "#10b981" : "#ef4444" }}>
+                    {/[A-Za-z]/.test(form.password) ? "✓" : "✗"} Letter
+                  </span>
+                  <span style={{ fontSize:11, padding:"2px 7px", borderRadius:5, background: /\d/.test(form.password) ? "#10b98120" : "#ef444420", color: /\d/.test(form.password) ? "#10b981" : "#ef4444" }}>
+                    {/\d/.test(form.password) ? "✓" : "✗"} Number
+                  </span>
+                  <span style={{ fontSize:11, padding:"2px 7px", borderRadius:5, background: /[^A-Za-z\d]/.test(form.password) ? "#10b98120" : "#ef444420", color: /[^A-Za-z\d]/.test(form.password) ? "#10b981" : "#ef4444" }}>
+                    {/[^A-Za-z\d]/.test(form.password) ? "✓" : "✗"} Symbol
+                  </span>
+                </div>
+              )}
               {errors.password && <span style={s.err}>{errors.password}</span>}
             </div>
           </div>

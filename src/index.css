@@ -1,21 +1,8 @@
 @import "tailwindcss";
-@import "@heroui/styles"; 
-@import "@heroui/styles"; 
-
-
+@import "@heroui/styles";
 
 /*
  * HeroUI Theme Customization
- * Add this to your global.css after importing @heroui/styles
- * Only includes base variables from variables.css
- * @see https://v3.heroui.com/docs/react/getting-started/theming
- */
-
-/*
- * HeroUI Theme Customization
- * Add this to your global.css after importing @heroui/styles
- * Only includes base variables from variables.css
- * @see https://v3.heroui.com/docs/react/getting-started/theming
  */
 
 :root,
@@ -23,7 +10,6 @@
 .default,
 [data-theme="light"],
 [data-theme="default"] {
-  /* Theme Colors (Light Mode) */
   --accent: #0e245c;
   --accent-foreground: oklch(99.11% 0 0);
   --background: oklch(97.02% 0.0015 264.39);
@@ -54,20 +40,29 @@
   --surface-tertiary-foreground: oklch(21.03% 0.0015 264.39);
   --warning: oklch(78.19% 0.1590 73.60);
   --warning-foreground: oklch(21.03% 0.0059 73.60);
-
-  /* Border Radius */
   --radius: 0.5rem;
   --field-radius: 0.75rem;
-
-  /* Font Family */
-  /* Make sure to load Inter font in your app */
   --font-sans: var(--font-inter);
+
+  /* Portal theme vars — light */
+  --p-bg:       #f1f5f9;
+  --p-bg2:      #e8edf5;
+  --p-card:     #ffffff;
+  --p-card2:    #f8fafc;
+  --p-deep:     #f1f5f9;
+  --p-border:   #e2e8f0;
+  --p-border-s: #f1f5f9;
+  --p-text:     #0f172a;
+  --p-text-2:   #334155;
+  --p-text-3:   #64748b;
+  --p-text-4:   #94a3b8;
+  --p-input:    #ffffff;
+  --p-cs:       light;
 }
 
 .dark,
 [data-theme="dark"] {
   color-scheme: dark;
-  /* Theme Colors (Dark Mode) */
   --accent: oklch(28.24% 0.1043 264.39);
   --accent-foreground: oklch(99.11% 0 0);
   --background: oklch(12.00% 0.0015 264.39);
@@ -98,4 +93,31 @@
   --surface-tertiary-foreground: oklch(99.11% 0.0015 264.39);
   --warning: oklch(82.03% 0.1392 77.61);
   --warning-foreground: oklch(21.03% 0.0059 77.61);
+
+  /* Portal theme vars — dark */
+  --p-bg:       #0f172a;
+  --p-bg2:      #07090f;
+  --p-card:     #1e293b;
+  --p-card2:    #0e1422;
+  --p-deep:     #0f172a;
+  --p-border:   #334155;
+  --p-border-s: #1e293b;
+  --p-text:     #e2e8f0;
+  --p-text-2:   #94a3b8;
+  --p-text-3:   #64748b;
+  --p-text-4:   #475569;
+  --p-input:    #1e293b;
+  --p-cs:       dark;
 }
+
+* { box-sizing: border-box; }
+
+input::placeholder { color: var(--p-text-3); }
+select option      { background: var(--p-card); color: var(--p-text); }
+
+@keyframes spin   { to { transform: rotate(360deg); } }
+@keyframes fadeUp { from { opacity:0; transform:translateY(8px); } to { opacity:1; transform:translateY(0); } }
+@keyframes pulse  { 0%,100% { opacity:1; } 50% { opacity:0.6; } }
+
+.sub-card:hover { border-color: #252f46 !important; }
+

@@ -86,7 +86,6 @@ export function Login() {
 
       // ── Navigate to home ────────────────────────────────────
       navigate("/");
-      s;
     } catch (error) {
       console.error("Login Error:", error);
       setFormError("Something went wrong. Try again.");
@@ -96,9 +95,9 @@ export function Login() {
   };
 
   return (
-    <div className="flex flex-col gap-10 justify-center items-center h-screen">
-      <div className="flex flex-wrap gap-2"></div>
-      <img src={logo} className="w-[120px] h-[120px]" />
+    <div className="flex flex-col gap-10 justify-center w-full items-center h-screen">
+      
+      <img src={logo} className="w-[120px] h-[120px] " />
 
       <Form className="flex w-[290px] flex-col gap-4" onSubmit={onSubmit}>
         {/* Mobile */}
@@ -161,6 +160,7 @@ export function Login() {
           Forgot PIN?
         </p> */}
       </Form>
+
     </div>
   );
 }

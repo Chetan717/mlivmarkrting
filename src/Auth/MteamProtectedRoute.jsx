@@ -1,17 +1,17 @@
 import { useEffect } from "react";
 import { useNavigate } from "react-router";
+import { getSession } from "../Utils/sessionManager";
 
 export default function MteamProtectedRoute({ children }) {
   const navigate = useNavigate();
-  const raw = localStorage.getItem("mteamUser");
+  const session  = getSession();
 
   useEffect(() => {
-    if (!raw) {
+    if (!session) {
       navigate("/login", { replace: true });
     }
-  }, [raw, navigate]);
+  }, [session, navigate]);
 
-  if (!raw) return null;
-
+  if (!session) return null;
   return children;
 }

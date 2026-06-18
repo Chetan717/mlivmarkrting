@@ -1,239 +1,449 @@
-import { useState, useEffect } from "react";
+import { useState, useEffect, useRef } from "react";
 import { useNavigate } from "react-router";
 import MainTeam from "./MainTeam";
 import TeamUserManagement from "./TeamUserManagement";
 import MonthWiseReport from "./MonthWiseReport";
 import LeadManagement from "./LeadManagement";
 import { useTheme } from "../../Context/ThemeContext";
+import { getSession, clearSession, refreshSession } from "../../Utils/sessionManager";
 import logo from "../../../public/mlmboo2.ico";
 
-const IcGrid = () => (
-  <svg width="17" height="17" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
-    <rect x="3" y="3" width="7" height="7" rx="1.5"/><rect x="14" y="3" width="7" height="7" rx="1.5"/>
-    <rect x="3" y="14" width="7" height="7" rx="1.5"/><rect x="14" y="14" width="7" height="7" rx="1.5"/>
-  </svg>
-);
-const IcReport = () => (
-  <svg width="17" height="17" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
-    <path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"/>
-    <polyline points="14 2 14 8 20 8"/>
-    <line x1="16" y1="13" x2="8" y2="13"/><line x1="16" y1="17" x2="8" y2="17"/>
-    <line x1="10" y1="9" x2="8" y2="9"/>
-  </svg>
-);
-const IcLeads = () => (
-  <svg width="17" height="17" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
-    <path d="M17 21v-2a4 4 0 0 0-4-4H5a4 4 0 0 0-4 4v2"/>
-    <circle cx="9" cy="7" r="4"/>
-    <path d="M23 21v-2a4 4 0 0 0-3-3.87"/><path d="M16 3.13a4 4 0 0 1 0 7.75"/>
-  </svg>
-);
-const IcTeam = () => (
-  <svg width="17" height="17" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
-    <path d="M17 21v-2a4 4 0 0 0-4-4H5a4 4 0 0 0-4 4v2"/>
-    <circle cx="9" cy="7" r="4"/>
-    <path d="M23 21v-2a4 4 0 0 0-3-3.87"/><path d="M16 3.13a4 4 0 0 1 0 7.75"/>
-  </svg>
-);
-const IcLogout = () => (
-  <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
-    <path d="M9 21H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h4"/>
-    <polyline points="16 17 21 12 16 7"/><line x1="21" y1="12" x2="9" y2="12"/>
-  </svg>
-);
-const IcMenu = () => (
-  <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
-    <line x1="3" y1="6" x2="21" y2="6"/><line x1="3" y1="12" x2="21" y2="12"/><line x1="3" y1="18" x2="21" y2="18"/>
-  </svg>
-);
-const IcSun = () => (
-  <svg width="17" height="17" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
-    <circle cx="12" cy="12" r="5"/>
-    <line x1="12" y1="1" x2="12" y2="3"/><line x1="12" y1="21" x2="12" y2="23"/>
-    <line x1="4.22" y1="4.22" x2="5.64" y2="5.64"/><line x1="18.36" y1="18.36" x2="19.78" y2="19.78"/>
-    <line x1="1" y1="12" x2="3" y2="12"/><line x1="21" y1="12" x2="23" y2="12"/>
-    <line x1="4.22" y1="19.78" x2="5.64" y2="18.36"/><line x1="18.36" y1="5.64" x2="19.78" y2="4.22"/>
-  </svg>
-);
-const IcMoon = () => (
-  <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
-    <path d="M21 12.79A9 9 0 1 1 11.21 3 7 7 0 0 0 21 12.79z"/>
-  </svg>
-);
+// ── Icons ──────────────────────────────────────────────────────────────────
+const IcGrid   = ({size=18})=><svg width={size} height={size} viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><rect x="3" y="3" width="7" height="7" rx="1.5"/><rect x="14" y="3" width="7" height="7" rx="1.5"/><rect x="3" y="14" width="7" height="7" rx="1.5"/><rect x="14" y="14" width="7" height="7" rx="1.5"/></svg>;
+const IcReport = ({size=18})=><svg width={size} height={size} viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"/><polyline points="14 2 14 8 20 8"/><line x1="16" y1="13" x2="8" y2="13"/><line x1="16" y1="17" x2="8" y2="17"/><line x1="10" y1="9" x2="8" y2="9"/></svg>;
+const IcLeads  = ({size=18})=><svg width={size} height={size} viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><path d="M17 21v-2a4 4 0 0 0-4-4H5a4 4 0 0 0-4 4v2"/><circle cx="9" cy="7" r="4"/><path d="M23 21v-2a4 4 0 0 0-3-3.87"/><path d="M16 3.13a4 4 0 0 1 0 7.75"/></svg>;
+const IcTeam   = ({size=18})=><svg width={size} height={size} viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><path d="M17 21v-2a4 4 0 0 0-4-4H5a4 4 0 0 0-4 4v2"/><circle cx="9" cy="7" r="4"/><path d="M23 21v-2a4 4 0 0 0-3-3.87"/><path d="M16 3.13a4 4 0 0 1 0 7.75"/></svg>;
+const IcLogout = ()=><svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><path d="M9 21H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h4"/><polyline points="16 17 21 12 16 7"/><line x1="21" y1="12" x2="9" y2="12"/></svg>;
+const IcMenu   = ()=><svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.2" strokeLinecap="round" strokeLinejoin="round"><line x1="3" y1="6" x2="21" y2="6"/><line x1="3" y1="12" x2="21" y2="12"/><line x1="3" y1="18" x2="21" y2="18"/></svg>;
+const IcClose  = ()=><svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round"><line x1="18" y1="6" x2="6" y2="18"/><line x1="6" y1="6" x2="18" y2="18"/></svg>;
+const IcSun    = ()=><svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><circle cx="12" cy="12" r="5"/><line x1="12" y1="1" x2="12" y2="3"/><line x1="12" y1="21" x2="12" y2="23"/><line x1="4.22" y1="4.22" x2="5.64" y2="5.64"/><line x1="18.36" y1="18.36" x2="19.78" y2="19.78"/><line x1="1" y1="12" x2="3" y2="12"/><line x1="21" y1="12" x2="23" y2="12"/><line x1="4.22" y1="19.78" x2="5.64" y2="18.36"/><line x1="18.36" y1="5.64" x2="19.78" y2="4.22"/></svg>;
+const IcMoon   = ()=><svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><path d="M21 12.79A9 9 0 1 1 11.21 3 7 7 0 0 0 21 12.79z"/></svg>;
+const IcUser   = ()=><svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><path d="M20 21v-2a4 4 0 0 0-4-4H8a4 4 0 0 0-4 4v2"/><circle cx="12" cy="7" r="4"/></svg>;
 
 const ALL_TABS = [
-  { id: "dashboard", label: "Dashboard",      memberOnly: false, icon: <IcGrid /> },
-  { id: "reports",   label: "Monthly Report", memberOnly: true,  icon: <IcReport /> },
-  { id: "leads",     label: "Leads",          memberOnly: true,  icon: <IcLeads /> },
-  { id: "team",      label: "My Team",        memberOnly: true,  icon: <IcTeam /> },
+  { id:"dashboard", label:"Dashboard",  shortLabel:"Home",    icon: IcGrid   },
+  { id:"reports",   label:"Reports",    shortLabel:"Reports", icon: IcReport },
+  { id:"leads",     label:"Leads",      shortLabel:"Leads",   icon: IcLeads  },
+  { id:"team",      label:"My Team",    shortLabel:"Team",    icon: IcTeam   },
 ];
 
 export default function MteamPortal() {
   const navigate = useNavigate();
   const { theme, toggle } = useTheme();
-  const [session, setSession]       = useState(null);
-  const [activeTab, setActiveTab]   = useState(null);
+  const [session, setSession]         = useState(null);
+  const [activeTab, setActiveTab]     = useState(null);
   const [sidebarOpen, setSidebarOpen] = useState(false);
+  const [profileOpen, setProfileOpen] = useState(false);
+  const [sessionExpiry, setSessionExpiry] = useState(null);
+  const profileRef = useRef(null);
 
   useEffect(() => {
-    try {
-      const raw = localStorage.getItem("mteamUser");
-      if (!raw) { navigate("/mlogin", { replace: true }); return; }
-      const user = JSON.parse(raw);
-      setSession(user);
-      const allowed = user.tabs ?? ["dashboard"];
-      setActiveTab(allowed[0] ?? "dashboard");
-    } catch {
-      navigate("/mlogin", { replace: true });
-    }
+    const s = getSession();
+    if (!s) { navigate("/login", { replace:true }); return; }
+    setSession(s);
+    const allowed = s.tabs ?? ["dashboard"];
+    setActiveTab(allowed[0] ?? "dashboard");
+    refreshSession();
+    if (s._expiresAt) setSessionExpiry(s._expiresAt);
+
+    const extend = () => refreshSession();
+    window.addEventListener("click", extend, { passive:true });
+    window.addEventListener("keydown", extend, { passive:true });
+    return () => {
+      window.removeEventListener("click", extend);
+      window.removeEventListener("keydown", extend);
+    };
   }, [navigate]);
+
+  // Check session validity every minute
+  useEffect(() => {
+    const interval = setInterval(() => {
+      if (!getSession()) navigate("/login", { replace:true });
+    }, 60000);
+    return () => clearInterval(interval);
+  }, [navigate]);
+
+  // Close profile dropdown on outside click
+  useEffect(() => {
+    const handle = (e) => {
+      if (profileRef.current && !profileRef.current.contains(e.target)) {
+        setProfileOpen(false);
+      }
+    };
+    document.addEventListener("mousedown", handle);
+    return () => document.removeEventListener("mousedown", handle);
+  }, []);
 
   if (!session) return null;
 
-  const isMember = session.role === "member";
-  // mobile to use for data queries — members use own mobile, sub-users use parent member's mobile
+  const isMember   = session.role === "member";
   const dataMobile = isMember ? session.mobile : (session.parentMobile ?? session.mobile);
 
-  const allowedTabs = ALL_TABS.filter((t) => {
-    // "My Team" is strictly member-only — sub-users can never manage team
+  const allowedTabs = ALL_TABS.filter(t => {
     if (t.id === "team") return isMember;
-    // members see all other tabs
     if (isMember) return true;
-    // sub-users see only tabs explicitly assigned to them
     return (session.tabs ?? ["dashboard"]).includes(t.id);
   });
 
-  const handleLogout = () => {
-    localStorage.removeItem("mteamUser");
-    navigate("/login");
-  };
+  const handleLogout = () => { clearSession(); navigate("/login"); };
+
+  const switchTab = (id) => { setActiveTab(id); setSidebarOpen(false); };
 
   const renderContent = () => {
     if (activeTab === "dashboard") return <MainTeam mteamSession={session} />;
-    if (activeTab === "reports")
-      return <MonthWiseReport mteamId={session.mteamId} mobile={dataMobile} />;
-    if (activeTab === "leads")
-      return <LeadManagement mteamId={session.mteamId} mobile={dataMobile} name={session.name} />;
-    if (activeTab === "team" && isMember)
-      return <TeamUserManagement mteamId={session.mteamId} />;
-    return (
-      <div style={{ padding: 40, color: "var(--p-text-3)", textAlign: "center" }}>
-        You don't have access to this section.
-      </div>
-    );
+    if (activeTab === "reports")   return <MonthWiseReport mteamId={session.mteamId} mobile={dataMobile} />;
+    if (activeTab === "leads")     return <LeadManagement mteamSession={session} />;
+    if (activeTab === "team" && isMember) return <TeamUserManagement mteamId={session.mteamId} />;
+    return <div style={{ padding:40, color:"var(--p-text-3)", textAlign:"center" }}>No access.</div>;
   };
 
-  const isDark = theme === "dark";
+  const isDark    = theme === "dark";
+  const activeTabInfo = ALL_TABS.find(t => t.id === activeTab);
 
   return (
     <div style={{ display:"flex", height:"100vh", overflow:"hidden", background:"var(--p-bg)", fontFamily:"'DM Sans','Segoe UI',sans-serif" }}>
+
+      {/* ── OVERLAY (mobile sidebar) ─────────────────────────────────── */}
       {sidebarOpen && (
-        <div style={{ position:"fixed", inset:0, background:"rgba(0,0,0,0.5)", zIndex:40 }}
-          onClick={() => setSidebarOpen(false)} />
+        <div
+          onClick={() => setSidebarOpen(false)}
+          style={{ position:"fixed", inset:0, background:"rgba(0,0,0,0.55)", zIndex:90, backdropFilter:"blur(2px)" }}
+        />
       )}
 
-      <aside style={{
-        width: 240, flexShrink: 0,
-        background: "var(--p-card)",
-        borderRight: "1px solid var(--p-border)",
-        display: "flex", flexDirection: "column",
-        position: "fixed", top:0, left:0, bottom:0, zIndex:50,
-        transform: sidebarOpen ? "translateX(0)" : undefined,
-        transition: "transform 0.3s ease",
-      }} className="mteam-sidebar">
+      {/* ── SIDEBAR ──────────────────────────────────────────────────── */}
+      <aside className={`mteam-sidebar${sidebarOpen ? " sidebar-open" : ""}`}>
 
-        <div style={{ display:"flex", alignItems:"center", gap:10, padding:"18px 16px", borderBottom:"1px solid var(--p-border)" }}>
-          <img src={logo} alt="logo" style={{ width:34, height:34, borderRadius:8 }} />
-          <span style={{ fontWeight:800, fontSize:16, color:"#6366f1", letterSpacing:"-0.3px" }}>MLMLIVE</span>
+        {/* Logo + Close btn */}
+        <div style={{ display:"flex", alignItems:"center", justifyContent:"space-between", padding:"16px 16px 14px", borderBottom:"1px solid var(--p-border)" }}>
+          <div style={{ display:"flex", alignItems:"center", gap:10 }}>
+            <img src={logo} alt="logo" style={{ width:32, height:32, borderRadius:8 }} />
+            <span style={{ fontWeight:800, fontSize:16, color:"#6366f1", letterSpacing:"-0.3px" }}>MLMLIVE</span>
+          </div>
+          <button className="sidebar-close-btn" onClick={() => setSidebarOpen(false)}
+            style={{ background:"none", border:"none", cursor:"pointer", color:"var(--p-text-3)", display:"flex", padding:4, borderRadius:8 }}>
+            <IcClose />
+          </button>
         </div>
 
+        {/* User info */}
         <div style={{ display:"flex", alignItems:"center", gap:10, padding:"14px 16px", borderBottom:"1px solid var(--p-border)" }}>
-          <div style={{
-            width:38, height:38, borderRadius:"50%",
-            background:"linear-gradient(135deg,#6366f1,#8b5cf6)",
-            display:"flex", alignItems:"center", justifyContent:"center",
-            color:"#fff", fontWeight:800, fontSize:16, flexShrink:0,
-          }}>{session.name?.[0]?.toUpperCase() ?? "M"}</div>
-          <div>
-            <p style={{ margin:0, fontSize:14, fontWeight:700, color:"var(--p-text)" }}>{session.name}</p>
+          <div style={{ width:38, height:38, borderRadius:"50%", background:"linear-gradient(135deg,#6366f1,#8b5cf6)", display:"flex", alignItems:"center", justifyContent:"center", color:"#fff", fontWeight:800, fontSize:16, flexShrink:0 }}>
+            {session.name?.[0]?.toUpperCase() ?? "M"}
+          </div>
+          <div style={{ minWidth:0 }}>
+            <p style={{ margin:0, fontSize:14, fontWeight:700, color:"var(--p-text)", overflow:"hidden", textOverflow:"ellipsis", whiteSpace:"nowrap" }}>{session.name}</p>
             <p style={{ margin:"2px 0 0", fontSize:11, color:"#6366f1", fontWeight:600 }}>
               {session.role === "member" ? "Marketing Member" : "Team Member"}
             </p>
           </div>
         </div>
 
-        <p style={{ margin:"14px 16px 6px", fontSize:10, fontWeight:700, color:"var(--p-text-4)", textTransform:"uppercase", letterSpacing:"0.1em" }}>
-          Menu
-        </p>
+        <p style={{ margin:"14px 16px 6px", fontSize:10, fontWeight:700, color:"var(--p-text-4)", textTransform:"uppercase", letterSpacing:"0.1em" }}>Navigation</p>
 
+        {/* Nav items */}
         <nav style={{ flex:1, display:"flex", flexDirection:"column", gap:2, padding:"0 8px", overflowY:"auto" }}>
-          {allowedTabs.map((tab) => {
+          {allowedTabs.map(tab => {
             const isActive = activeTab === tab.id;
+            const Icon = tab.icon;
             return (
-              <button key={tab.id} style={{
-                display:"flex", alignItems:"center", gap:10, padding:"10px 12px",
+              <button key={tab.id} onClick={() => switchTab(tab.id)} style={{
+                display:"flex", alignItems:"center", gap:11, padding:"11px 14px",
                 borderRadius:10, border:"none", cursor:"pointer", fontSize:14, fontWeight:600,
                 textAlign:"left", transition:"all 0.15s", width:"100%",
                 background: isActive ? "#6366f115" : "transparent",
-                color: isActive ? (isDark ? "#a5b4fc" : "#6366f1") : "var(--p-text-3)",
+                color: isActive ? (isDark ? "#a5b4fc" : "#4f46e5") : "var(--p-text-3)",
                 borderLeft: isActive ? "3px solid #6366f1" : "3px solid transparent",
-              }} onClick={() => { setActiveTab(tab.id); setSidebarOpen(false); }}>
-                <span style={{ color: isActive ? "#6366f1" : "var(--p-text-4)" }}>{tab.icon}</span>
+              }}>
+                <span style={{ color: isActive ? "#6366f1" : "var(--p-text-4)", display:"flex" }}><Icon size={17}/></span>
                 {tab.label}
+                {isActive && <span style={{ marginLeft:"auto", width:6, height:6, borderRadius:"50%", background:"#6366f1", flexShrink:0 }} />}
               </button>
             );
           })}
         </nav>
 
-        <div style={{ padding:"12px 8px", borderTop:"1px solid var(--p-border)" }}>
-          <button style={{
-            display:"flex", alignItems:"center", gap:8, padding:"10px 12px",
-            borderRadius:10, border:"none", cursor:"pointer", fontSize:14, fontWeight:600,
-            color:"#ef4444", background:"transparent", width:"100%", transition:"background 0.15s",
-          }} onClick={handleLogout}>
+        {/* Theme + expiry */}
+        <div style={{ padding:"10px 16px", borderTop:"1px solid var(--p-border)" }}>
+          <button onClick={toggle} style={{
+            display:"flex", alignItems:"center", gap:8, padding:"9px 12px", width:"100%",
+            borderRadius:10, border:"1px solid var(--p-border)", background:"var(--p-card2)",
+            color:"var(--p-text-2)", cursor:"pointer", fontSize:13, fontWeight:600, transition:"all 0.2s",
+          }}>
+            {isDark ? <IcSun /> : <IcMoon />}
+            {isDark ? "Light Mode" : "Dark Mode"}
+          </button>
+          {sessionExpiry && (
+            <p style={{ margin:"8px 0 0", fontSize:10, color:"var(--p-text-4)", textAlign:"center" }}>
+              Session until {new Date(sessionExpiry).toLocaleTimeString("en-IN",{hour:"2-digit",minute:"2-digit"})}
+            </p>
+          )}
+        </div>
+
+        {/* Logout */}
+        <div style={{ padding:"10px 8px 16px" }}>
+          <button onClick={handleLogout} style={{
+            display:"flex", alignItems:"center", gap:8, padding:"11px 14px",
+            borderRadius:10, border:"1px solid #ef444430", cursor:"pointer", fontSize:14, fontWeight:600,
+            color:"#ef4444", background:"#ef444408", width:"100%", transition:"background 0.15s",
+          }}>
             <IcLogout /> Logout
           </button>
         </div>
       </aside>
 
-      <div style={{ flex:1, display:"flex", flexDirection:"column", overflow:"hidden", marginLeft:0 }} className="mteam-main">
+      {/* ── MAIN CONTENT ─────────────────────────────────────────────── */}
+      <div className="mteam-main" style={{ flex:1, display:"flex", flexDirection:"column", overflow:"hidden", minWidth:0 }}>
+
+        {/* Top Header */}
         <header style={{
-          display:"flex", alignItems:"center", gap:14, padding:"14px 20px",
+          display:"flex", alignItems:"center", gap:10, padding:"0 16px",
+          height:56, minHeight:56, flexShrink:0,
           borderBottom:"1px solid var(--p-border)",
-          background:"var(--p-card)", flexShrink:0,
+          background:"var(--p-card)",
         }}>
-          <button style={{ background:"none", border:"none", cursor:"pointer", color:"var(--p-text-3)", padding:4, display:"flex" }}
-            className="mteam-hamburger" onClick={() => setSidebarOpen(true)}>
+          {/* Hamburger — mobile only */}
+          <button className="mteam-hamburger" onClick={() => setSidebarOpen(true)}
+            style={{ background:"none", border:"none", cursor:"pointer", color:"var(--p-text-2)", padding:"6px", borderRadius:8, display:"flex", alignItems:"center", flexShrink:0 }}>
             <IcMenu />
           </button>
-          <span style={{ fontWeight:700, fontSize:16, color:"var(--p-text)", flex:1 }}>
-            {ALL_TABS.find((t) => t.id === activeTab)?.label ?? "Portal"}
+
+          {/* Logo — mobile only */}
+          <div className="header-logo" style={{ display:"flex", alignItems:"center", gap:8, flexShrink:0 }}>
+            <img src={logo} alt="" style={{ width:26, height:26, borderRadius:6 }} />
+          </div>
+
+          {/* Tab title */}
+          <span style={{ fontWeight:700, fontSize:16, color:"var(--p-text)", flex:1, overflow:"hidden", textOverflow:"ellipsis", whiteSpace:"nowrap" }}>
+            {activeTabInfo?.label ?? "Portal"}
           </span>
 
+          {/* Theme toggle */}
           <button onClick={toggle} title="Toggle theme" style={{
-            display:"flex", alignItems:"center", gap:6, padding:"7px 12px",
+            display:"flex", alignItems:"center", gap:5, padding:"6px 10px",
             borderRadius:20, border:"1px solid var(--p-border)",
             background:"var(--p-card2)", color:"var(--p-text-2)",
-            cursor:"pointer", fontSize:12, fontWeight:600, transition:"all 0.2s",
+            cursor:"pointer", fontSize:12, fontWeight:600, transition:"all 0.2s", flexShrink:0,
           }}>
             {isDark ? <IcSun /> : <IcMoon />}
-            {isDark ? "Light" : "Dark"}
+            <span className="theme-label">{isDark ? "Light" : "Dark"}</span>
           </button>
 
-          <span style={{ fontSize:12, color:"var(--p-text-3)" }}>{session.mobile}</span>
+          {/* Profile dropdown — desktop */}
+          <div ref={profileRef} style={{ position:"relative", flexShrink:0 }} className="desktop-profile">
+            <button onClick={() => setProfileOpen(p => !p)} style={{
+              display:"flex", alignItems:"center", gap:8, padding:"6px 10px",
+              borderRadius:20, border:"1px solid var(--p-border)", background:"var(--p-card2)",
+              color:"var(--p-text-2)", cursor:"pointer", fontSize:12, fontWeight:600,
+            }}>
+              <div style={{ width:24, height:24, borderRadius:"50%", background:"linear-gradient(135deg,#6366f1,#8b5cf6)", display:"flex", alignItems:"center", justifyContent:"center", color:"#fff", fontWeight:800, fontSize:11 }}>
+                {session.name?.[0]?.toUpperCase()}
+              </div>
+              <span style={{ maxWidth:80, overflow:"hidden", textOverflow:"ellipsis", whiteSpace:"nowrap" }}>{session.name}</span>
+            </button>
+            {profileOpen && (
+              <div style={{ position:"absolute", right:0, top:"calc(100% + 6px)", background:"var(--p-card)", border:"1px solid var(--p-border)", borderRadius:14, padding:8, minWidth:180, boxShadow:"0 8px 32px #0003", zIndex:200 }}>
+                <div style={{ padding:"8px 12px 10px", borderBottom:"1px solid var(--p-border)", marginBottom:4 }}>
+                  <p style={{ margin:0, fontWeight:700, fontSize:13, color:"var(--p-text)" }}>{session.name}</p>
+                  <p style={{ margin:"2px 0 0", fontSize:11, color:"var(--p-text-4)" }}>{session.mobile}</p>
+                  {sessionExpiry && (
+                    <p style={{ margin:"4px 0 0", fontSize:10, color:"var(--p-text-4)" }}>
+                      Session until {new Date(sessionExpiry).toLocaleTimeString("en-IN",{hour:"2-digit",minute:"2-digit"})}
+                    </p>
+                  )}
+                </div>
+                <button onClick={handleLogout} style={{
+                  display:"flex", alignItems:"center", gap:8, padding:"9px 12px", width:"100%",
+                  borderRadius:8, border:"none", cursor:"pointer", fontSize:13, fontWeight:600,
+                  color:"#ef4444", background:"transparent", textAlign:"left",
+                }}>
+                  <IcLogout /> Sign Out
+                </button>
+              </div>
+            )}
+          </div>
         </header>
 
-        <div style={{ flex:1, overflowY:"auto", background:"var(--p-bg)" }}>
+        {/* Page content */}
+        <div style={{ flex:1, overflowY:"auto", background:"var(--p-bg)" }} className="mteam-content">
           {renderContent()}
         </div>
+
+        {/* ── BOTTOM NAV (mobile only) ──────────────────────────────── */}
+        <nav className="mteam-bottom-nav">
+          {allowedTabs.map(tab => {
+            const isActive = activeTab === tab.id;
+            const Icon = tab.icon;
+            return (
+              <button key={tab.id} onClick={() => switchTab(tab.id)} style={{
+                flex:1, display:"flex", flexDirection:"column", alignItems:"center", justifyContent:"center",
+                gap:4, padding:"8px 4px", border:"none", background:"transparent",
+                color: isActive ? "#6366f1" : "var(--p-text-4)",
+                cursor:"pointer", transition:"color 0.15s", position:"relative",
+              }}>
+                {isActive && (
+                  <span style={{ position:"absolute", top:0, left:"50%", transform:"translateX(-50%)", width:24, height:3, borderRadius:"0 0 4px 4px", background:"#6366f1" }} />
+                )}
+                <span style={{ display:"flex", alignItems:"center", justifyContent:"center",
+                  width:34, height:34, borderRadius:10,
+                  background: isActive ? "#6366f115" : "transparent",
+                  transition:"background 0.15s",
+                }}>
+                  <Icon size={19} />
+                </span>
+                <span style={{ fontSize:10, fontWeight: isActive ? 700 : 500, letterSpacing:"0.01em" }}>
+                  {tab.shortLabel}
+                </span>
+              </button>
+            );
+          })}
+        </nav>
       </div>
 
+      {/* ── RESPONSIVE STYLES ────────────────────────────────────────── */}
       <style>{`
-        @media (min-width: 768px) {
-          .mteam-sidebar  { transform: translateX(0) !important; position: relative !important; flex-shrink: 0; }
-          .mteam-main     { margin-left: 0 !important; }
-          .mteam-hamburger{ display: none !important; }
+        /* ── Sidebar: hidden by default on mobile ─────── */
+        .mteam-sidebar {
+          width: 260px;
+          flex-shrink: 0;
+          background: var(--p-card);
+          border-right: 1px solid var(--p-border);
+          display: flex;
+          flex-direction: column;
+          position: fixed;
+          top: 0; left: 0; bottom: 0;
+          z-index: 100;
+          transform: translateX(-100%);
+          transition: transform 0.28s cubic-bezier(.4,0,.2,1);
+          box-shadow: 4px 0 24px rgba(0,0,0,0.12);
         }
+        .mteam-sidebar.sidebar-open {
+          transform: translateX(0);
+        }
+
+        /* ── Bottom nav: mobile only ──────────────────── */
+        .mteam-bottom-nav {
+          display: flex;
+          align-items: stretch;
+          background: var(--p-card);
+          border-top: 1px solid var(--p-border);
+          height: 64px;
+          min-height: 64px;
+          flex-shrink: 0;
+          padding: 0 4px;
+          padding-bottom: env(safe-area-inset-bottom, 0px);
+        }
+
+        /* Mobile-only elements */
+        .mteam-hamburger { display: flex !important; }
+        .header-logo     { display: flex !important; }
+        .desktop-profile { display: none !important; }
+        .sidebar-close-btn { display: flex !important; }
+        .theme-label     { display: none; }
+
+        /* ── Desktop (≥768px) ─────────────────────────── */
+        @media (min-width: 768px) {
+          .mteam-sidebar {
+            transform: translateX(0) !important;
+            position: relative !important;
+            box-shadow: none;
+          }
+          .sidebar-close-btn { display: none !important; }
+          .mteam-bottom-nav  { display: none !important; }
+          .mteam-hamburger   { display: none !important; }
+          .header-logo       { display: none !important; }
+          .desktop-profile   { display: block !important; }
+          .theme-label       { display: inline !important; }
+          .mteam-content     { padding-bottom: 0 !important; }
+        }
+
+        /* ── Responsive dashboard cards ──────────────── */
+        .stat-grid-financial,
+        .stat-grid-users {
+          display: grid;
+          gap: 12px;
+          grid-template-columns: repeat(2, 1fr);
+        }
+        @media (min-width: 480px) {
+          .stat-grid-financial { grid-template-columns: repeat(2, 1fr); }
+          .stat-grid-users     { grid-template-columns: repeat(3, 1fr); }
+        }
+        @media (min-width: 768px) {
+          .stat-grid-financial { grid-template-columns: repeat(3, 1fr); }
+          .stat-grid-users     { grid-template-columns: repeat(5, 1fr); }
+        }
+        @media (min-width: 1024px) {
+          .stat-grid-financial { grid-template-columns: repeat(5, 1fr); }
+        }
+
+        /* ── Dashboard padding ────────────────────────── */
+        .dashboard-wrap { padding: 14px 12px; }
+        @media (min-width: 640px) { .dashboard-wrap { padding: 20px 24px; } }
+
+        /* ── Lead Management ──────────────────────────── */
+        .lead-wrap { padding: 14px 12px; }
+        @media (min-width: 640px) { .lead-wrap { padding: 20px 24px; } }
+
+        .lead-date-row {
+          display: flex;
+          flex-wrap: wrap;
+          gap: 10px;
+          align-items: flex-end;
+        }
+        .lead-date-input {
+          flex: 1 1 130px;
+          min-width: 130px;
+        }
+        .lead-filters-scroll {
+          display: flex;
+          flex-wrap: wrap;
+          gap: 8px;
+          align-items: center;
+        }
+        @media (max-width: 639px) {
+          .lead-filters-scroll {
+            overflow-x: auto;
+            flex-wrap: nowrap;
+            padding-bottom: 4px;
+            -webkit-overflow-scrolling: touch;
+          }
+          .lead-filters-scroll::-webkit-scrollbar { height: 3px; }
+          .lead-filters-scroll::-webkit-scrollbar-thumb { background: var(--p-border); border-radius: 4px; }
+        }
+
+        /* ── Mobile card view for leads table ────────── */
+        .leads-table-wrap { display: none; }
+        .leads-card-list  { display: flex; flex-direction: column; gap: 10px; }
+        @media (min-width: 768px) {
+          .leads-table-wrap { display: block; }
+          .leads-card-list  { display: none; }
+        }
+
+        /* ── Mobile subscriber table ──────────────────── */
+        .sub-table-wrap { overflow-x: auto; border-radius: 14px; border: 1px solid var(--p-border); }
+        .sub-table-wrap table { min-width: 660px; }
+
+        /* ── Coupon card flex ─────────────────────────── */
+        .coupon-card-inner {
+          display: flex;
+          flex-wrap: wrap;
+          gap: 16px;
+          align-items: center;
+        }
+        .coupon-divider { display: none; }
+        @media (min-width: 560px) { .coupon-divider { display: block; } }
+
+        /* ── Header filter buttons ────────────────────── */
+        .filter-btn-row {
+          display: flex;
+          gap: 6px;
+          overflow-x: auto;
+          padding-bottom: 2px;
+          -webkit-overflow-scrolling: touch;
+          flex-shrink: 0;
+        }
+        .filter-btn-row::-webkit-scrollbar { height: 2px; }
+        .filter-btn-row button { flex-shrink: 0; }
       `}</style>
     </div>
   );

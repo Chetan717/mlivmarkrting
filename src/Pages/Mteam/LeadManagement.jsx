@@ -295,10 +295,10 @@ export default function LeadManagement({ mteamId, mobile, name }) {
   const resolveItem = useCallback((leadId) => {
     if (!leadId) return { type: "new", item: null };
     const type = parseleadType(leadId);
-    if (type === "new") {
-      const mob = leadId.replace("new__", "");
-      return { type, item: newUsers.find((u) => u.mobileNo === mob) ?? null };
-    }
+    // if (type === "new") {
+    //   const mob = leadId.replace("new__", "");
+    //   return { type, item: newUsers.find((u) => u.mobileNo === mob) ?? null };
+    // }
     if (type === "renewal") {
       const sid = leadId.replace("renewal__", "");
       return { type, item: renewals.find((s) => s.documentId === sid) ?? null };
@@ -351,7 +351,7 @@ export default function LeadManagement({ mteamId, mobile, name }) {
     }).length;
 
   const TAB_DEFS = [
-    { id:"new",      icon:<IcUsers />,    label:"New Users",    count: pendingCount(newUsers,  (u) => newLeadId(u.mobileNo)) },
+    // { id:"new",      icon:<IcUsers />,    label:"New Users",    count: pendingCount(newUsers,  (u) => newLeadId(u.mobileNo)) },
     { id:"renewal",  icon:<IcRefresh />,  label:"Renewal",      count: pendingCount(renewals,  (s) => renewalLeadId(s.documentId)) },
     { id:"early",    icon:<IcAlert />,    label:"Early Expiry", count: pendingCount(earlyExp,  (s) => earlyLeadId(s.documentId)) },
     { id:"followup", icon:<IcCalendar />, label:"Follow-ups",   count: overdueFollowUps, accentOverdue: overdueFollowUps > 0 },

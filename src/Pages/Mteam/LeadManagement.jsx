@@ -202,7 +202,8 @@ export default function LeadManagement({ mteamId, mobile, name }) {
 
       const mySubs         = mySubsSnap.docs.map((d) => ({ documentId: d.id, ...d.data() }));
       const subscribedMobi = new Set(allSubsSnap.docs.map((d) => d.data().mobileNo).filter(Boolean));
-      const allUsers       = usersSnap.docs.map((d) => ({ documentId: d.id, ...d.data() }));
+      const allUsers       = []
+        // usersSnap.docs.map((d) => ({ documentId: d.id, ...d.data() }));
 
       setNewUsers(allUsers.filter((u) => u.mobileNo && !subscribedMobi.has(u.mobileNo)));
 

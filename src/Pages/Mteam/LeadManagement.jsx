@@ -82,7 +82,7 @@ const STATUS_COLORS = {
   completed: { bg:"#6366f120", color:"#6366f1", label:"Completed" },
 };
 const LEAD_TYPE_LABELS = {
-  new:     { label:"New User",     color:"#6366f1" },
+  // new:     { label:"New User",     color:"#6366f1" },
   renewal: { label:"Renewal",      color:"#f59e0b" },
   early:   { label:"Early Expiry", color:"#ef4444" },
 };

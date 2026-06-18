@@ -933,7 +933,7 @@ export default function LeadManagement({ mteamId, mobile, name }) {
   // ── Normal tab ─────────────────────────────────────────────
   const renderNormalTab = () => {
     const getInfo = (item) => {
-      if (activeTab === "new")     return { leadId: newLeadId(item.mobileNo),       mob: item.mobileNo, name2: item.name,                     type:"new" };
+      // if (activeTab === "new")     return { leadId: newLeadId(item.mobileNo),       mob: item.mobileNo, name2: item.name,                     type:"new" };
       if (activeTab === "renewal") return { leadId: renewalLeadId(item.documentId), mob: item.mobileNo, name2: item.UserName ?? item.mobileNo, type:"renewal" };
       return                              { leadId: earlyLeadId(item.documentId),   mob: item.mobileNo, name2: item.UserName ?? item.mobileNo, type:"early" };
     };

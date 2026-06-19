@@ -47,17 +47,27 @@ function sanitize(v) {
 }
 
 // ── constants ──────────────────────────────────────────────────────────────
-const LEAD_STATUSES = ["New","Hot","Warm","Cold","Converted","Lost","Follow Up"];
+const LEAD_STATUSES = ["New", "Lost", "Renewal Follow Up", "Follow Up"];
 const PAGE_SIZE = 15;
 const LEAD_STATUS_COLORS = {
-  New:        { color:"#6366f1", bg:"#6366f115" },
-  Hot:        { color:"#ef4444", bg:"#ef444415" },
-  Warm:       { color:"#f59e0b", bg:"#f59e0b15" },
-  Cold:       { color:"#94a3b8", bg:"#94a3b815" },
-  Converted:  { color:"#10b981", bg:"#10b98115" },
-  Lost:       { color:"#64748b", bg:"#64748b15" },
-  "Follow Up":{ color:"#8b5cf6", bg:"#8b5cf615" },
+  "New":                 { color:"#6366f1", bg:"#6366f115" },
+  "Lost":                { color:"#64748b", bg:"#64748b15" },
+  "Renewal Follow Up":   { color:"#f59e0b", bg:"#f59e0b15" },
+  "Follow Up":           { color:"#8b5cf6", bg:"#8b5cf615" },
 };
+
+// Early expiry threshold — show as lead if expiring within this many days
+const EARLY_EXPIRY_DAYS = 30;
+
+// Is this user a valid lead? (no active plan / expired / expiring soon)
+function isValidLead(subscription) {
+  if (!subscription) return true;       // No plan → New user lead
+  if (subscription.Expire) return true; // Expired → needs renewal
+  if (!subscription.Active) return true; // Inactive
+  const dl = daysLeft(subscription.expirydate);
+  if (dl !== null && dl <= EARLY_EXPIRY_DAYS) return true; // Early expiry
+  return false; // Active with time left → not a lead
+}
 
 // ── SVG Icons ──────────────────────────────────────────────────────────────
 const IcPhone    = ()=><svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><path d="M22 16.92v3a2 2 0 0 1-2.18 2 19.79 19.79 0 0 1-8.63-3.07A19.5 19.5 0 0 1 4.69 12a19.79 19.79 0 0 1-3.07-8.67A2 2 0 0 1 3.6 1.18h3a2 2 0 0 1 2 1.72 12.84 12.84 0 0 0 .7 2.81 2 2 0 0 1-.45 2.11L7.91 8.96a16 16 0 0 0 6.29 6.29l1.14-1.93a2 2 0 0 1 2.11-.45 12.84 12.84 0 0 0 2.81.7A2 2 0 0 1 22 15.6z"/></svg>;
@@ -66,7 +76,6 @@ const IcEdit     = ()=><svg width="14" height="14" viewBox="0 0 24 24" fill="non
 const IcEye      = ()=><svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><path d="M1 12s4-8 11-8 11 8 11 8-4 8-11 8-11-8-11-8z"/><circle cx="12" cy="12" r="3"/></svg>;
 const IcDownload = ()=><svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"/><polyline points="7 10 12 15 17 10"/><line x1="12" y1="15" x2="12" y2="3"/></svg>;
 const IcRefresh  = ()=><svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><polyline points="1 4 1 10 7 10"/><path d="M3.51 15a9 9 0 1 0 .49-4.9"/></svg>;
-const IcFilter   = ()=><svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><polygon points="22 3 2 3 10 12.46 10 19 14 21 14 12.46 22 3"/></svg>;
 const IcX        = ()=><svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round"><line x1="18" y1="6" x2="6" y2="18"/><line x1="6" y1="6" x2="18" y2="18"/></svg>;
 const IcCheck    = ()=><svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round"><polyline points="20 6 9 17 4 12"/></svg>;
 const IcClock    = ()=><svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><circle cx="12" cy="12" r="10"/><polyline points="12 6 12 12 16 14"/></svg>;
@@ -74,7 +83,6 @@ const IcChevL    = ()=><svg width="16" height="16" viewBox="0 0 24 24" fill="non
 const IcChevR    = ()=><svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round"><polyline points="9 18 15 12 9 6"/></svg>;
 const IcSearch   = ()=><svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><circle cx="11" cy="11" r="8"/><line x1="21" y1="21" x2="16.65" y2="16.65"/></svg>;
 const IcUsers    = ()=><svg width="32" height="32" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round"><path d="M17 21v-2a4 4 0 0 0-4-4H5a4 4 0 0 0-4 4v2"/><circle cx="9" cy="7" r="4"/><path d="M23 21v-2a4 4 0 0 0-3-3.87"/><path d="M16 3.13a4 4 0 0 1 0 7.75"/></svg>;
-const IcHistory  = ()=><svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><polyline points="1 4 1 10 7 10"/><path d="M3.51 15a9 9 0 1 0 .49-4.9"/></svg>;
 
 // ── sub-components ─────────────────────────────────────────────────────────
 function LeadStatusBadge({ status }) {
@@ -106,6 +114,15 @@ function PlanStatusBadge({ subscription }) {
   return <span style={{ padding:"2px 9px", borderRadius:6, background:"#f59e0b15", color:"#f59e0b", fontSize:11, fontWeight:700 }}>Inactive</span>;
 }
 
+// "Renewal" badge shown when user has expired subscription
+function RenewalBadge() {
+  return (
+    <span style={{ padding:"2px 8px", borderRadius:6, background:"#f59e0b20", color:"#f59e0b", fontSize:10, fontWeight:800, border:"1px solid #f59e0b40", letterSpacing:"0.04em" }}>
+      RENEWAL
+    </span>
+  );
+}
+
 // ── Follow-up Modal ────────────────────────────────────────────────────────
 function FollowupModal({ lead, onClose, onSave, session }) {
   const existing = lead.followup;
@@ -132,8 +149,9 @@ function FollowupModal({ lead, onClose, onSave, session }) {
         {/* Header */}
         <div style={{ padding:"18px 22px 14px", borderBottom:"1px solid var(--p-border)", display:"flex", alignItems:"center", justifyContent:"space-between" }}>
           <div>
-            <p style={{ margin:0, fontWeight:800, fontSize:15, color:"var(--p-text)" }}>
+            <p style={{ margin:0, fontWeight:800, fontSize:15, color:"var(--p-text)", display:"flex", alignItems:"center", gap:8 }}>
               Follow-up — {lead.user.name}
+              {lead.subscription?.Expire && <RenewalBadge />}
             </p>
             <p style={{ margin:"2px 0 0", fontSize:12, color:"var(--p-text-3)" }}>{lead.user.mobileNo}</p>
           </div>
@@ -266,7 +284,10 @@ function ViewModal({ lead, onClose, onFollowup }) {
               {(user.name||"?")[0].toUpperCase()}
             </div>
             <div>
-              <p style={{ margin:0, fontWeight:800, fontSize:15, color:"var(--p-text)" }}>{user.name}</p>
+              <p style={{ margin:0, fontWeight:800, fontSize:15, color:"var(--p-text)", display:"flex", alignItems:"center", gap:8 }}>
+                {user.name}
+                {subscription?.Expire && <RenewalBadge />}
+              </p>
               <p style={{ margin:"2px 0 0", fontSize:12, color:"var(--p-text-3)" }}>{user.mobileNo}</p>
             </div>
           </div>
@@ -283,7 +304,9 @@ function ViewModal({ lead, onClose, onFollowup }) {
 
           {subscription && (
             <>
-              <p style={{ margin:"16px 0 10px", fontSize:11, fontWeight:700, color:"var(--p-text-4)", textTransform:"uppercase", letterSpacing:"0.06em" }}>Subscription</p>
+              <p style={{ margin:"16px 0 10px", fontSize:11, fontWeight:700, color:"var(--p-text-4)", textTransform:"uppercase", letterSpacing:"0.06em" }}>
+                Subscription {subscription.Expire && <span style={{ color:"#f59e0b", marginLeft:6 }}>(Expired — Renewal Needed)</span>}
+              </p>
               <Row label="Plan" value={subscription.plan} />
               <Row label="Plan Type" value={subscription.planType} />
               <Row label="Amount Paid" value={`₹${Number(subscription.PaymentAmount||0).toLocaleString("en-IN")}`} />
@@ -343,13 +366,14 @@ export default function LeadManagement({ mteamSession }) {
   const [initLoading, setInitLoading]   = useState(true);
   const [error, setError]               = useState(null);
   const [fetched, setFetched]           = useState(false);
+  const [mlmCompanies, setMlmCompanies] = useState([]);
 
   const [fromDate, setFromDate] = useState(daysAgoStr(30));
   const [toDate, setToDate]     = useState(todayStr());
 
   const [filters, setFilters] = useState({
     search: "", leadStatus: "all", planStatus: "all",
-    expiringIn: "all", company: "all",
+    mlmProfile: "all", expiringIn: "all", company: "all",
   });
   const [page, setPage]             = useState(1);
   const [batchSelected, setBatch]   = useState([]);
@@ -359,7 +383,7 @@ export default function LeadManagement({ mteamSession }) {
   const [followupModal, setFollowupModal] = useState(null);
   const [viewModal, setViewModal]         = useState(null);
 
-  // ── init: load mteam + coupon ────────────────────────────────────────────
+  // ── init: load mteam + coupon + mlm companies ────────────────────────────
   useEffect(() => {
     if (!mteamId) return;
     (async () => {
@@ -382,6 +406,23 @@ export default function LeadManagement({ mteamSession }) {
           if (!cSnap.empty) coupon = { id: cSnap.docs[0].id, ...cSnap.docs[0].data() };
         }
         if (coupon) setCouponCode(coupon.code);
+
+        // Fetch active & launched MLM companies from mlmcomp collection
+        try {
+          const compSnap = await getDocs(
+            query(
+              collection(db, "mlmcomp"),
+              where("Active", "==", true),
+              where("launched", "==", true)
+            )
+          );
+          const compList = compSnap.docs
+            .map(d => ({ id: d.id, ...d.data() }))
+            .map(c => c.name ?? c.companyName ?? c.title ?? "")
+            .filter(Boolean)
+            .sort();
+          setMlmCompanies(compList);
+        } catch (_) {}
       } catch (e) {
         setError(e.message);
       } finally {
@@ -398,8 +439,6 @@ export default function LeadManagement({ mteamSession }) {
     try {
       const from = new Date(fromDate); from.setHours(0,0,0,0);
       const to   = new Date(toDate);   to.setHours(23,59,59,999);
-      const fromTs = Timestamp.fromDate(from);
-      const toTs   = Timestamp.fromDate(to);
 
       // 1. users referred by this mteam member in date range
       const userSnap = await getDocs(
@@ -419,7 +458,7 @@ export default function LeadManagement({ mteamSession }) {
         }
       });
 
-      // 2. subscriptions for this coupon (successful)
+      // 2. subscriptions for this coupon (successful) — keep latest per user
       const subSnap = await getDocs(
         query(
           collection(db, COLL.SUBSCRIPTION),
@@ -434,14 +473,13 @@ export default function LeadManagement({ mteamSession }) {
         if (!prev) {
           subsByMobile[s.mobileNo] = s;
         } else {
-          // keep latest
           const prevDate = prev.PurchaseAt?.toDate ? prev.PurchaseAt.toDate() : new Date(prev.PurchaseAt ?? 0);
           const thisDate = s.PurchaseAt?.toDate ? s.PurchaseAt.toDate() : new Date(s.PurchaseAt ?? 0);
           if (thisDate > prevDate) subsByMobile[s.mobileNo] = s;
         }
       });
 
-      // Include subscription users not yet in usersMap (used coupon but maybe different referral)
+      // Include subscription users not in usersMap
       const unknownMobiles = Object.keys(subsByMobile).filter(m => !usersMap[m]);
       if (unknownMobiles.length) {
         for (const chunk of chunkArray(unknownMobiles, 30)) {
@@ -457,7 +495,7 @@ export default function LeadManagement({ mteamSession }) {
 
       const allUsers = Object.values(usersMap);
 
-      // 3. mlm profiles for these users (batch by mobile)
+      // 3. mlm profiles for these users
       const mobiles = allUsers.map(u => u.mobileNo).filter(Boolean);
       const profilesByMobile = {};
       for (const chunk of chunkArray(mobiles, 30)) {
@@ -482,13 +520,15 @@ export default function LeadManagement({ mteamSession }) {
       });
       setFollowups(fuByUserId);
 
-      // 5. merge
-      const enriched = allUsers.map(user => ({
-        user,
-        subscription: subsByMobile[user.mobileNo] ?? null,
-        mlmProfile:   profilesByMobile[user.mobileNo] ?? null,
-        followup:     fuByUserId[user.id] ?? null,
-      }));
+      // 5. merge — only keep valid leads (no active plan / expired / early expiry)
+      const enriched = allUsers
+        .map(user => ({
+          user,
+          subscription: subsByMobile[user.mobileNo] ?? null,
+          mlmProfile:   profilesByMobile[user.mobileNo] ?? null,
+          followup:     fuByUserId[user.id] ?? null,
+        }))
+        .filter(({ subscription }) => isValidLead(subscription));
 
       setLeads(enriched);
       setFetched(true);
@@ -516,9 +556,12 @@ export default function LeadManagement({ mteamSession }) {
         if (ls !== filters.leadStatus) return false;
       }
       if (filters.planStatus !== "all") {
-        if (filters.planStatus === "withPlan"   && (!subscription || subscription.Expire))           return false;
-        if (filters.planStatus === "noPlan"     && subscription)                                     return false;
-        if (filters.planStatus === "expired"    && (!subscription || !subscription.Expire))          return false;
+        if (filters.planStatus === "noPlan"  && subscription) return false;
+        if (filters.planStatus === "expired" && (!subscription || !subscription.Expire)) return false;
+      }
+      if (filters.mlmProfile !== "all") {
+        if (filters.mlmProfile === "hasMlm"  && !mlmProfile) return false;
+        if (filters.mlmProfile === "noMlm"   && mlmProfile)  return false;
       }
       if (filters.expiringIn !== "all") {
         const days = subscription ? daysLeft(subscription.expirydate) : null;
@@ -543,14 +586,16 @@ export default function LeadManagement({ mteamSession }) {
   const safePage   = Math.min(page, totalPages);
   const visibleLeads = filteredLeads.slice((safePage-1)*PAGE_SIZE, safePage*PAGE_SIZE);
 
-  const companies = useMemo(() => {
+  // Companies list: prefer Firestore mlmcomp, fall back to companies from leads data
+  const companiesList = useMemo(() => {
+    if (mlmCompanies.length > 0) return mlmCompanies;
     const set = new Set();
     leads.forEach(({ mlmProfile, subscription }) => {
       const c = mlmProfile?.companyName ?? subscription?.company;
       if (c) set.add(c);
     });
     return [...set].sort();
-  }, [leads]);
+  }, [mlmCompanies, leads]);
 
   // ── handle save followup ─────────────────────────────────────────────────
   const handleFollowupSave = async ({ leadStatus, note, nextFollowupDate }) => {
@@ -633,6 +678,7 @@ export default function LeadManagement({ mteamSession }) {
         "MLM Profile":       mlmProfile ? "Yes" : "No",
         "Company":           mlmProfile?.companyName ?? "",
         "Plan Status":       subscription ? (subscription.Active && !subscription.Expire ? "Active" : "Expired") : "No Plan",
+        "Is Renewal Lead":   subscription?.Expire ? "Yes" : "No",
         "Plan":              subscription?.plan ?? "",
         "Expiry":            subscription?.expirydate ?? "",
         "Days Left":         days !== null ? (days <= 0 ? "Expired" : `${days}`) : "",
@@ -657,6 +703,11 @@ export default function LeadManagement({ mteamSession }) {
     URL.revokeObjectURL(url);
   };
 
+  const clearFilters = () => {
+    setFilters({ search:"", leadStatus:"all", planStatus:"all", mlmProfile:"all", expiringIn:"all", company:"all" });
+    setPage(1);
+  };
+
   const setFilter = (key, val) => { setFilters(f => ({ ...f, [key]: val })); setPage(1); };
   const toggleBatch = (id) => setBatch(prev => prev.includes(id) ? prev.filter(x => x !== id) : [...prev, id]);
   const toggleAllBatch = () => {
@@ -664,6 +715,17 @@ export default function LeadManagement({ mteamSession }) {
     const allSel = ids.every(id => batchSelected.includes(id));
     setBatch(prev => allSel ? prev.filter(id => !ids.includes(id)) : [...new Set([...prev, ...ids])]);
   };
+
+  const hasActiveFilters = filters.leadStatus !== "all" || filters.planStatus !== "all" || filters.mlmProfile !== "all" || filters.expiringIn !== "all" || filters.company !== "all" || filters.search;
+
+  // ── today's follow-ups ───────────────────────────────────────────────────
+  const todayFollowups = useMemo(() => {
+    const today = todayStr();
+    return leads.filter(({ user }) => {
+      const fu = followups[user.id];
+      return fu?.nextFollowupDate === today;
+    });
+  }, [leads, followups]);
 
   // ── render guards ────────────────────────────────────────────────────────
   if (initLoading) return (
@@ -687,7 +749,7 @@ export default function LeadManagement({ mteamSession }) {
         </span>
         <h1 style={{ margin:0, fontSize:22, fontWeight:800, color:"var(--p-text)" }}>Lead Pipeline</h1>
         <p style={{ margin:"4px 0 0", fontSize:13, color:"var(--p-text-3)" }}>
-          All leads referred by you — track, follow up, and convert.
+          New users, expired & expiring soon — track, follow up, and convert.
         </p>
       </div>
 
@@ -729,10 +791,85 @@ export default function LeadManagement({ mteamSession }) {
         )}
       </div>
 
+      {/* ── TODAY'S FOLLOW-UPS ───────────────────────────────────────────── */}
+      {fetched && todayFollowups.length > 0 && (
+        <div style={{ marginBottom:20 }}>
+          <div style={{ display:"flex", alignItems:"center", gap:8, marginBottom:12 }}>
+            <span style={{ fontSize:18 }}>🔔</span>
+            <span style={{ fontSize:14, fontWeight:800, color:"var(--p-text)" }}>Today's Follow-ups</span>
+            <span style={{ padding:"2px 10px", borderRadius:20, background:"#ef444415", color:"#ef4444", fontSize:11, fontWeight:800, border:"1px solid #ef444430" }}>
+              {todayFollowups.length}
+            </span>
+          </div>
+          <div style={{ display:"flex", flexDirection:"column", gap:10 }}>
+            {todayFollowups.map(({ user, subscription, mlmProfile }) => {
+              const fu      = followups[user.id];
+              const days    = subscription ? daysLeft(subscription.expirydate) : null;
+              const isRenewal = subscription?.Expire === true;
+              return (
+                <div key={user.id} style={{
+                  display:"flex", alignItems:"center", gap:14, flexWrap:"wrap",
+                  padding:"13px 16px", borderRadius:14,
+                  background:"linear-gradient(135deg,#f59e0b08,#ef444408)",
+                  border:"1.5px solid #f59e0b40",
+                  boxShadow:"0 2px 12px #f59e0b10",
+                }}>
+                  {/* Avatar */}
+                  <div style={{ width:38, height:38, borderRadius:10, background:"linear-gradient(135deg,#f59e0b,#ef4444)", display:"flex", alignItems:"center", justifyContent:"center", color:"#fff", fontWeight:800, fontSize:15, flexShrink:0 }}>
+                    {(user.name||"?")[0].toUpperCase()}
+                  </div>
+
+                  {/* Info */}
+                  <div style={{ flex:1, minWidth:140 }}>
+                    <div style={{ display:"flex", alignItems:"center", gap:7, flexWrap:"wrap" }}>
+                      <span style={{ fontWeight:800, fontSize:14, color:"var(--p-text)" }}>{user.name}</span>
+                      {isRenewal && <RenewalBadge />}
+                      <LeadStatusBadge status={fu?.leadStatus ?? "New"} />
+                      {mlmProfile && (
+                        <span style={{ padding:"2px 7px", borderRadius:6, fontSize:10, fontWeight:700, background:"#10b98115", color:"#10b981" }}>MLM ✓</span>
+                      )}
+                    </div>
+                    <p style={{ margin:"3px 0 0", fontSize:12, color:"var(--p-text-3)" }}>{user.mobileNo}</p>
+                    {fu?.lastFollowupNote && (
+                      <p style={{ margin:"3px 0 0", fontSize:11, color:"var(--p-text-4)", overflow:"hidden", textOverflow:"ellipsis", whiteSpace:"nowrap", maxWidth:320 }}>
+                        📝 {fu.lastFollowupNote}
+                      </p>
+                    )}
+                  </div>
+
+                  {/* Plan info */}
+                  <div style={{ display:"flex", flexDirection:"column", alignItems:"flex-end", gap:4, flexShrink:0 }}>
+                    <PlanStatusBadge subscription={subscription} />
+                    {days !== null && <DaysLeftBadge days={days} />}
+                  </div>
+
+                  {/* Actions */}
+                  <div style={{ display:"flex", gap:7, flexShrink:0 }}>
+                    <a href={`tel:${user.mobileNo}`} title="Call"
+                      style={{ display:"inline-flex", alignItems:"center", gap:5, padding:"7px 12px", borderRadius:9, background:"#10b98115", color:"#10b981", border:"1px solid #10b98130", textDecoration:"none", fontSize:12, fontWeight:700 }}>
+                      <IcPhone /> Call
+                    </a>
+                    <a href={`https://wa.me/91${user.mobileNo}`} target="_blank" rel="noreferrer" title="WhatsApp"
+                      style={{ display:"inline-flex", alignItems:"center", gap:5, padding:"7px 12px", borderRadius:9, background:"#25D36615", color:"#25D366", border:"1px solid #25D36630", textDecoration:"none", fontSize:12, fontWeight:700 }}>
+                      <IcWhatsapp /> WA
+                    </a>
+                    <button onClick={() => setFollowupModal({ user, subscription, mlmProfile, followup: fu })}
+                      style={{ display:"inline-flex", alignItems:"center", gap:5, padding:"7px 12px", borderRadius:9, background:"#6366f115", color:"#a5b4fc", border:"1px solid #6366f130", cursor:"pointer", fontSize:12, fontWeight:700 }}>
+                      <IcEdit /> Note
+                    </button>
+                  </div>
+                </div>
+              );
+            })}
+          </div>
+        </div>
+      )}
+
       {fetched && (
         <>
           {/* ── FILTERS ──────────────────────────────────────────────────── */}
           <div className="lead-filters-scroll" style={{ marginBottom:14 }}>
+
             {/* Search */}
             <div style={{ display:"flex", alignItems:"center", gap:7, padding:"8px 12px", background:"var(--p-card)", border:"1.5px solid var(--p-border)", borderRadius:10, flex:"1 1 180px", minWidth:160 }}>
               <IcSearch />
@@ -745,18 +882,28 @@ export default function LeadManagement({ mteamSession }) {
               {filters.search && <button onClick={() => setFilter("search","")} style={{ background:"none", border:"none", cursor:"pointer", color:"var(--p-text-4)", display:"flex", padding:0 }}><IcX /></button>}
             </div>
 
-            {/* Lead Status */}
+            {/* Lead Status — only 4 options */}
             <select value={filters.leadStatus} onChange={e => setFilter("leadStatus", e.target.value)}
               style={{ padding:"8px 12px", background:"var(--p-card)", border:"1.5px solid var(--p-border)", borderRadius:10, color:"var(--p-text)", fontSize:13, outline:"none" }}>
               <option value="all">All Status</option>
-              {LEAD_STATUSES.map(s => <option key={s} value={s}>{s}</option>)}
+              <option value="New">New</option>
+              <option value="Lost">Lost</option>
+              <option value="Renewal Follow Up">Renewal Follow Up</option>
+              <option value="Follow Up">Follow Up</option>
             </select>
 
-            {/* Plan Status */}
+            {/* MLM Profile filter */}
+            <select value={filters.mlmProfile} onChange={e => setFilter("mlmProfile", e.target.value)}
+              style={{ padding:"8px 12px", background:"var(--p-card)", border:"1.5px solid var(--p-border)", borderRadius:10, color:"var(--p-text)", fontSize:13, outline:"none" }}>
+              <option value="all">All Profiles</option>
+              <option value="hasMlm">Have MLM Profile</option>
+              <option value="noMlm">No MLM Profile</option>
+            </select>
+
+            {/* Plan Status — only No Plan and Expired */}
             <select value={filters.planStatus} onChange={e => setFilter("planStatus", e.target.value)}
               style={{ padding:"8px 12px", background:"var(--p-card)", border:"1.5px solid var(--p-border)", borderRadius:10, color:"var(--p-text)", fontSize:13, outline:"none" }}>
               <option value="all">All Plans</option>
-              <option value="withPlan">Active Plan</option>
               <option value="noPlan">No Plan</option>
               <option value="expired">Expired (Need Renewal)</option>
             </select>
@@ -773,18 +920,16 @@ export default function LeadManagement({ mteamSession }) {
               <option value="15">Within 15 Days</option>
             </select>
 
-            {/* Company */}
-            {companies.length > 0 && (
-              <select value={filters.company} onChange={e => setFilter("company", e.target.value)}
-                style={{ padding:"8px 12px", background:"var(--p-card)", border:"1.5px solid var(--p-border)", borderRadius:10, color:"var(--p-text)", fontSize:13, outline:"none" }}>
-                <option value="all">All Companies</option>
-                {companies.map(c => <option key={c} value={c}>{c}</option>)}
-              </select>
-            )}
+            {/* Company — from mlmcomp (Active+launched) or leads data fallback */}
+            <select value={filters.company} onChange={e => setFilter("company", e.target.value)}
+              style={{ padding:"8px 12px", background:"var(--p-card)", border:"1.5px solid var(--p-border)", borderRadius:10, color:"var(--p-text)", fontSize:13, outline:"none" }}>
+              <option value="all">All Companies</option>
+              {companiesList.map(c => <option key={c} value={c}>{c}</option>)}
+            </select>
 
             {/* Clear filters */}
-            {(filters.leadStatus !== "all" || filters.planStatus !== "all" || filters.expiringIn !== "all" || filters.company !== "all" || filters.search) && (
-              <button onClick={() => { setFilters({ search:"", leadStatus:"all", planStatus:"all", expiringIn:"all", company:"all" }); setPage(1); }}
+            {hasActiveFilters && (
+              <button onClick={clearFilters}
                 style={{ display:"flex", alignItems:"center", gap:5, padding:"8px 14px", borderRadius:10, border:"1.5px solid #ef444440", background:"#ef444410", color:"#ef4444", fontSize:13, fontWeight:700, cursor:"pointer" }}>
                 <IcX /> Clear
               </button>
@@ -842,10 +987,11 @@ export default function LeadManagement({ mteamSession }) {
                 </thead>
                 <tbody>
                   {visibleLeads.map(({ user, subscription, mlmProfile }, idx) => {
-                    const followup = followups[user.id];
-                    const days     = subscription ? daysLeft(subscription.expirydate) : null;
-                    const isSel    = batchSelected.includes(user.id);
-                    const isUrgent = days !== null && days >= 0 && days <= 3;
+                    const followup   = followups[user.id];
+                    const days       = subscription ? daysLeft(subscription.expirydate) : null;
+                    const isSel      = batchSelected.includes(user.id);
+                    const isUrgent   = days !== null && days >= 0 && days <= 3;
+                    const isRenewal  = subscription?.Expire === true;
 
                     return (
                       <tr key={user.id} style={{ background: isUrgent ? "#ef444408" : idx%2===1 ? "var(--p-bg)" : "transparent", transition:"background 0.15s" }}>
@@ -857,13 +1003,18 @@ export default function LeadManagement({ mteamSession }) {
                             <div style={{ width:34, height:34, borderRadius:9, background:"linear-gradient(135deg,#6366f1,#8b5cf6)", display:"flex", alignItems:"center", justifyContent:"center", color:"#fff", fontWeight:800, fontSize:13, flexShrink:0 }}>
                               {(user.name||"?")[0].toUpperCase()}
                             </div>
-                            <span style={{ fontWeight:700, fontSize:13, color:"var(--p-text)" }}>{user.name}</span>
+                            <div>
+                              <span style={{ fontWeight:700, fontSize:13, color:"var(--p-text)" }}>{user.name}</span>
+                              {isRenewal && (
+                                <div style={{ marginTop:2 }}>
+                                  <RenewalBadge />
+                                </div>
+                              )}
+                            </div>
                           </div>
                         </td>
                         <td style={td()}>
-                          <div style={{ display:"flex", alignItems:"center", gap:6 }}>
-                            <span style={{ fontSize:13, color:"var(--p-text-3)" }}>{user.mobileNo}</span>
-                          </div>
+                          <span style={{ fontSize:13, color:"var(--p-text-3)" }}>{user.mobileNo}</span>
                         </td>
                         <td style={td()}>
                           <span style={{ padding:"2px 9px", borderRadius:6, fontSize:11, fontWeight:700,
@@ -923,13 +1074,14 @@ export default function LeadManagement({ mteamSession }) {
             {/* Mobile card list */}
             <div className="leads-card-list" style={{ marginBottom:16 }}>
               {visibleLeads.map(({ user, subscription, mlmProfile }) => {
-                const followup = followups[user.id];
-                const days     = subscription ? daysLeft(subscription.expirydate) : null;
-                const isSel    = batchSelected.includes(user.id);
-                const isUrgent = days !== null && days >= 0 && days <= 3;
+                const followup  = followups[user.id];
+                const days      = subscription ? daysLeft(subscription.expirydate) : null;
+                const isSel     = batchSelected.includes(user.id);
+                const isUrgent  = days !== null && days >= 0 && days <= 3;
+                const isRenewal = subscription?.Expire === true;
                 return (
                   <div key={user.id} style={{
-                    background: isUrgent ? "var(--p-card)" : "var(--p-card)",
+                    background: "var(--p-card)",
                     border: isUrgent ? "1.5px solid #ef444430" : "1px solid var(--p-border)",
                     borderRadius:14, padding:"14px", position:"relative",
                     boxShadow: isSel ? "0 0 0 2px #6366f1" : "none",
@@ -944,7 +1096,10 @@ export default function LeadManagement({ mteamSession }) {
                         {(user.name||"?")[0].toUpperCase()}
                       </div>
                       <div>
-                        <p style={{ margin:0, fontWeight:700, fontSize:14, color:"var(--p-text)" }}>{user.name}</p>
+                        <div style={{ display:"flex", alignItems:"center", gap:6, flexWrap:"wrap" }}>
+                          <p style={{ margin:0, fontWeight:700, fontSize:14, color:"var(--p-text)" }}>{user.name}</p>
+                          {isRenewal && <RenewalBadge />}
+                        </div>
                         <p style={{ margin:"2px 0 0", fontSize:12, color:"var(--p-text-3)" }}>{user.mobileNo}</p>
                       </div>
                     </div>

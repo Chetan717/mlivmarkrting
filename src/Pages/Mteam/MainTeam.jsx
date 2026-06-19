@@ -1,4 +1,4 @@
-import { useState, useEffect } from "react";
+import { useState, useEffect, useMemo } from "react";
 import {
   getFirestore, collection, query, where, getDocs, doc, getDoc,
 } from "firebase/firestore";
@@ -26,6 +26,11 @@ function chunkArray(arr, size) {
   for (let i=0;i<arr.length;i+=size) out.push(arr.slice(i,i+size));
   return out;
 }
+function getPurchaseTs(sub) {
+  if (!sub.PurchaseAt) return 0;
+  if (sub.PurchaseAt?.toDate) return sub.PurchaseAt.toDate().getTime();
+  return new Date(sub.PurchaseAt).getTime();
+}
 
 // ── SVG Icons ──────────────────────────────────────────────
 const IcMoney     = ()=><svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><line x1="12" y1="1" x2="12" y2="23"/><path d="M17 5H9.5a3.5 3.5 0 0 0 0 7h5a3.5 3.5 0 0 1 0 7H6"/></svg>;
@@ -40,6 +45,7 @@ const IcMinus     = ()=><svg width="20" height="20" viewBox="0 0 24 24" fill="no
 const IcTicket    = ()=><svg width="11" height="11" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><path d="M2 9a3 3 0 0 1 0 6v2a2 2 0 0 0 2 2h16a2 2 0 0 0 2-2v-2a3 3 0 0 1 0-6V7a2 2 0 0 0-2-2H4a2 2 0 0 0-2 2z"/></svg>;
 const IcPhone     = ()=><svg width="11" height="11" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><path d="M22 16.92v3a2 2 0 0 1-2.18 2 19.79 19.79 0 0 1-8.63-3.07A19.5 19.5 0 0 1 4.69 12a19.79 19.79 0 0 1-3.07-8.67A2 2 0 0 1 3.6 1.18h3a2 2 0 0 1 2 1.72 12.84 12.84 0 0 0 .7 2.81 2 2 0 0 1-.45 2.11L7.91 8.96a16 16 0 0 0 6.29 6.29l1.14-1.93a2 2 0 0 1 2.11-.45 12.84 12.84 0 0 0 2.81.7A2 2 0 0 1 22 15.6z"/></svg>;
 const IcEye       = ()=><svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><path d="M1 12s4-8 11-8 11 8 11 8-4 8-11 8-11-8-11-8z"/><circle cx="12" cy="12" r="3"/></svg>;
+const IcNewUser   = ()=><svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><path d="M16 21v-2a4 4 0 0 0-4-4H5a4 4 0 0 0-4 4v2"/><circle cx="8.5" cy="7" r="4"/><line x1="20" y1="8" x2="20" y2="14"/><line x1="23" y1="11" x2="17" y2="11"/></svg>;
 
 const ITEMS_PER_PAGE = 10;
 
@@ -156,13 +162,30 @@ function pBtn(disabled) {
   };
 }
 
+// ── Tab button ─────────────────────────────────────────────
+function DashTab({ label, active, onClick, accent }) {
+  return (
+    <button
+      onClick={onClick}
+      className="dash-tab-btn"
+      style={{
+        background: active ? (accent + "18") : "transparent",
+        color: active ? accent : "var(--p-text-3)",
+        borderBottom: active ? `2.5px solid ${accent}` : "2.5px solid transparent",
+        fontWeight: active ? 700 : 500,
+      }}
+    >
+      {label}
+    </button>
+  );
+}
+
 // ── main component ─────────────────────────────────────────────────────────
 export default function MarketingDashboard({ mteamSession } = {}) {
   const [mlmUser, setMlmUser]       = useState(null);
   const [mteamDoc, setMteamDoc]     = useState(null);
   const [couponDoc, setCouponDoc]   = useState(null);
   const [subscribers, setSubscribers] = useState([]);
-  // new stats
   const [referredUsers, setReferredUsers]   = useState([]);
   const [mlmProfiles, setMlmProfiles]       = useState([]);
   const [loading, setLoading]               = useState(true);
@@ -173,6 +196,7 @@ export default function MarketingDashboard({ mteamSession } = {}) {
   const [page, setPage]                     = useState(1);
   const [selectedSub, setSelectedSub]       = useState(null);
   const [modalOpen, setModalOpen]           = useState(false);
+  const [dashTab, setDashTab]               = useState("financial");
 
   // ── 1. resolve session ─────────────────────────────────────────────────
   useEffect(() => {
@@ -288,29 +312,74 @@ export default function MarketingDashboard({ mteamSession } = {}) {
   useEffect(() => { setPage(1); }, [search, filterStatus, sortBy]);
 
   // ── derived stats ──────────────────────────────────────────────────────
-  const commPct          = couponDoc?.marketing_member_percentage ?? 0;
-  const discountPct      = couponDoc?.user_discount ?? 0;
-  const totalRevenue     = subscribers.reduce((a, s) => a + (s.PaymentAmount ?? 0), 0);
-  const totalCommission  = Math.round(totalRevenue * (commPct / 100));
-  const activeSubs       = subscribers.filter(s => s.Active && !s.Expire).length;
-  const expiredSubs      = subscribers.filter(s => s.Expire).length;
-  const renewalSubs      = subscribers.filter(s => {
-    if (!s.Active || s.Expire) return false;
-    const exp = parseDMY(s.expirydate);
-    if (!exp) return false;
-    const now = new Date(); now.setHours(0,0,0,0);
-    const diff = Math.ceil((exp - now) / (1000*60*60*24));
-    return diff >= 0 && diff <= 30;
-  }).length;
+  const commPct     = couponDoc?.marketing_member_percentage ?? 0;
+  const discountPct = couponDoc?.user_discount ?? 0;
 
-  // new stats
-  const purchasedMobiles    = new Set(subscribers.map(s => s.mobileNo));
-  const purchasedCount      = purchasedMobiles.size;
-  const notPurchasedCount   = referredUsers.filter(u => !purchasedMobiles.has(u.mobileNo)).length;
+  // Group subscriptions by user (mobileNo), sorted oldest-first
+  const subsByUser = useMemo(() => {
+    const map = {};
+    for (const sub of subscribers) {
+      const m = sub.mobileNo;
+      if (!m) continue;
+      if (!map[m]) map[m] = [];
+      map[m].push(sub);
+    }
+    for (const m in map) {
+      map[m].sort((a, b) => getPurchaseTs(a) - getPurchaseTs(b));
+    }
+    return map;
+  }, [subscribers]);
+
+  // ── Financial stats ───────────────────────────────────────
+  const totalRevenue    = subscribers.reduce((a, s) => a + (s.PaymentAmount ?? 0), 0);
+  const totalCommission = Math.round(totalRevenue * (commPct / 100));
+
+  // New Commission = commission from the 1st subscription of each user
+  // Renewal Commission = commission from 2nd+ subscriptions of each user
+  const { newCommission, renewalCommission } = useMemo(() => {
+    let newC = 0, renewalC = 0;
+    for (const mobile in subsByUser) {
+      const subs = subsByUser[mobile];
+      subs.forEach((sub, idx) => {
+        const amt = sub.PaymentAmount ?? 0;
+        const comm = Math.round(amt * (commPct / 100));
+        if (idx === 0) newC += comm;
+        else renewalC += comm;
+      });
+    }
+    return { newCommission: newC, renewalCommission: renewalC };
+  }, [subsByUser, commPct]);
+
+  // ── Referred Users stats ──────────────────────────────────
   const profileMobiles      = new Set(mlmProfiles.map(p => p.mobile));
   const createdProfileCount = referredUsers.filter(u => profileMobiles.has(u.mobileNo)).length;
   const noProfileCount      = referredUsers.filter(u => !profileMobiles.has(u.mobileNo)).length;
-  const activeUsersCount    = referredUsers.filter(u => u.isverified).length;
+
+  // ── Subscription stats ────────────────────────────────────
+  const { totalActiveSubs, newSubCount, renewalSubCount, expiredSubCount } = useMemo(() => {
+    // totalActiveSubs: unique users with at least 1 active subscription
+    let totalActive = 0;
+    let newSub = 0;      // users with exactly 1 subscription total
+    let renewalSub = 0;  // users with 2+ subscriptions total
+    let expiredSub = 0;  // users with no active subscription at all
+
+    for (const mobile in subsByUser) {
+      const subs = subsByUser[mobile];
+      const hasActive = subs.some(s => s.Active && !s.Expire);
+      const subCount = subs.length;
+
+      if (hasActive) totalActive++;
+      if (subCount === 1) newSub++;
+      else if (subCount >= 2) renewalSub++;
+      if (!hasActive) expiredSub++;
+    }
+    return {
+      totalActiveSubs: totalActive,
+      newSubCount: newSub,
+      renewalSubCount: renewalSub,
+      expiredSubCount: expiredSub,
+    };
+  }, [subsByUser]);
 
   // ── filtered / sorted subscriber list ─────────────────────────────────
   const filtered = subscribers
@@ -369,65 +438,91 @@ export default function MarketingDashboard({ mteamSession } = {}) {
         </div>
       </header>
 
-      {/* ── STAT CARDS — ROW 1: Financial ─────────────────────────────── */}
-      <p style={{ margin:"0 0 10px", fontSize:11, fontWeight:700, color:"var(--p-text-4)", textTransform:"uppercase", letterSpacing:"0.08em" }}>Financial</p>
-      <div className="stat-grid-financial" style={{ marginBottom:22 }}>
-        <StatCard icon={<IcMoney />} accent="#f59e0b" big
-          label="Your Commission"
-          value={fmtINR(totalCommission)}
-          sub={`${commPct}% of ${fmtINR(totalRevenue)}`}
-        />
-        <StatCard icon={<IcTag />} accent="#6366f1"
-          label="Total Sales"
-          value={subscribers.length}
-          sub="via coupon code"
-        />
-        <StatCard icon={<IcCheckCir />} accent="#10b981"
-          label="Active Subscriptions"
-          value={activeSubs}
-          sub="currently active"
-        />
-        <StatCard icon={<IcRefresh />} accent="#8b5cf6"
-          label="On Renewal"
-          value={renewalSubs}
-          sub="expiring in 30 days"
-        />
-        <StatCard icon={<IcClock />} accent="#ef4444"
-          label="Expired"
-          value={expiredSubs}
-          sub="need renewal"
-        />
+      {/* ── DASHBOARD TABS ─────────────────────────────────────────────── */}
+      <div className="dash-tab-bar">
+        <DashTab label="💰 Financial"      active={dashTab==="financial"}  onClick={()=>setDashTab("financial")}  accent="#f59e0b" />
+        <DashTab label="👥 Referred Users" active={dashTab==="referred"}   onClick={()=>setDashTab("referred")}   accent="#6366f1" />
+        <DashTab label="📋 Subscriptions"  active={dashTab==="subs"}       onClick={()=>setDashTab("subs")}       accent="#10b981" />
       </div>
 
-      {/* ── STAT CARDS — ROW 2: Leads / Users ─────────────────────────── */}
-      <p style={{ margin:"0 0 10px", fontSize:11, fontWeight:700, color:"var(--p-text-4)", textTransform:"uppercase", letterSpacing:"0.08em" }}>Your Referred Users ({referredUsers.length} total)</p>
-      <div className="stat-grid-users" style={{ marginBottom:22 }}>
-        <StatCard icon={<IcCheckCir />} accent="#10b981"
-          label="Purchased Subscription"
-          value={purchasedCount}
-          sub="used your coupon"
-        />
-        <StatCard icon={<IcUserX />} accent="#f59e0b"
-          label="Not Purchased"
-          value={notPurchasedCount}
-          sub="yet to subscribe"
-        />
-        <StatCard icon={<IcStar />} accent="#6366f1"
-          label="Created MLM Profile"
-          value={createdProfileCount}
-          sub="have a profile"
-        />
-        <StatCard icon={<IcMinus />} accent="#94a3b8"
-          label="No MLM Profile"
-          value={noProfileCount}
-          sub="profile not created"
-        />
-        <StatCard icon={<IcUsers />} accent="#8b5cf6"
-          label="Active Users"
-          value={activeUsersCount}
-          sub="verified accounts"
-        />
-      </div>
+      {/* ── TAB: FINANCIAL ─────────────────────────────────────────────── */}
+      {dashTab === "financial" && (
+        <>
+          <div className="stat-grid-financial" style={{ marginBottom:22 }}>
+            <StatCard icon={<IcMoney />} accent="#f59e0b" big
+              label="Total Commission"
+              value={fmtINR(totalCommission)}
+              sub={`${commPct}% of ${fmtINR(totalRevenue)}`}
+            />
+            <StatCard icon={<IcNewUser />} accent="#6366f1"
+              label="New Commission"
+              value={fmtINR(newCommission)}
+              sub="1st subscription per user"
+            />
+            <StatCard icon={<IcRefresh />} accent="#10b981"
+              label="Renewal Commission"
+              value={fmtINR(renewalCommission)}
+              sub="2nd+ subscriptions per user"
+            />
+            <StatCard icon={<IcTag />} accent="#8b5cf6"
+              label="Total Sales"
+              value={subscribers.length}
+              sub="via coupon code"
+            />
+          </div>
+        </>
+      )}
+
+      {/* ── TAB: REFERRED USERS ─────────────────────────────────────────── */}
+      {dashTab === "referred" && (
+        <>
+          <div className="stat-grid-users" style={{ marginBottom:22 }}>
+            <StatCard icon={<IcUsers />} accent="#6366f1" big
+              label="Total Users"
+              value={referredUsers.length}
+              sub="referred by you"
+            />
+            <StatCard icon={<IcStar />} accent="#10b981"
+              label="Created MLM Profile"
+              value={createdProfileCount}
+              sub="have a profile"
+            />
+            <StatCard icon={<IcMinus />} accent="#94a3b8"
+              label="No MLM Profile"
+              value={noProfileCount}
+              sub="profile not created"
+            />
+          </div>
+        </>
+      )}
+
+      {/* ── TAB: SUBSCRIPTIONS ─────────────────────────────────────────── */}
+      {dashTab === "subs" && (
+        <>
+          <div className="stat-grid-subs" style={{ marginBottom:22 }}>
+            <StatCard icon={<IcCheckCir />} accent="#10b981" big
+              label="Total Active Subscriptions"
+              value={totalActiveSubs}
+              sub="users with active plan"
+            />
+            <StatCard icon={<IcNewUser />} accent="#6366f1"
+              label="New Subscription"
+              value={newSubCount}
+              sub="users with only 1 purchase"
+            />
+            <StatCard icon={<IcRefresh />} accent="#8b5cf6"
+              label="Renewal Subscription"
+              value={renewalSubCount}
+              sub="users with 2+ purchases"
+            />
+            <StatCard icon={<IcClock />} accent="#ef4444"
+              label="Expired Subscription"
+              value={expiredSubCount}
+              sub="no active plan"
+            />
+          </div>
+        </>
+      )}
 
       {/* ── COUPON CARD ────────────────────────────────────────────────── */}
       {couponDoc && (

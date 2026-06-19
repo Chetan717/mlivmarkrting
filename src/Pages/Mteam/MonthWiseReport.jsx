@@ -170,7 +170,43 @@ export default function MonthWiseReport({ mteamId, mobile }) {
 
   const totalRevenue = filtered.reduce((a, s) => a + (s.PaymentAmount ?? 0), 0);
   const totalCommission = Math.round(totalRevenue * (commPct / 100));
-  const activeSubs = filtered.filter((s) => s.Active && !s.Expire).length;
+
+  // Build per-user subscription order from ALL subscribers (to correctly tag 1st vs renewal)
+  const { newCommission, renewalCommission } = useMemo(() => {
+    // Sort all subscribers per mobile by purchase date (oldest first)
+    const allByUser = {};
+    for (const sub of subscribers) {
+      const m = sub.mobileNo;
+      if (!m) continue;
+      if (!allByUser[m]) allByUser[m] = [];
+      allByUser[m].push(sub);
+    }
+    for (const m in allByUser) {
+      allByUser[m].sort((a, b) => {
+        const getTs = (s) => {
+          if (!s.PurchaseAt) return 0;
+          if (s.PurchaseAt?.toDate) return s.PurchaseAt.toDate().getTime();
+          return new Date(s.PurchaseAt).getTime();
+        };
+        return getTs(a) - getTs(b);
+      });
+    }
+    // Tag each subscription: index 0 = "new", index 1+ = "renewal"
+    const firstSubIds = new Set();
+    for (const m in allByUser) {
+      const first = allByUser[m][0];
+      if (first?.documentId) firstSubIds.add(first.documentId);
+    }
+    // Now compute from the date-filtered set
+    let newC = 0, renewalC = 0;
+    for (const sub of filtered) {
+      const amt = sub.PaymentAmount ?? 0;
+      const comm = Math.round(amt * (commPct / 100));
+      if (firstSubIds.has(sub.documentId)) newC += comm;
+      else renewalC += comm;
+    }
+    return { newCommission: newC, renewalCommission: renewalC };
+  }, [subscribers, filtered, commPct]);
 
   if (loading) {
     return (
@@ -295,7 +331,8 @@ export default function MonthWiseReport({ mteamId, mobile }) {
         <StatCard icon={<IcReceipt />} label="Total Sales" value={filtered.length} accent="#6366f1" sub="in selected period" />
         <StatCard icon={<IcMoney />} label="Total Revenue" value={fmtINR(totalRevenue)} accent="#f59e0b" sub="from all sales" big />
         <StatCard icon={<IcAward />} label="Your Commission" value={fmtINR(totalCommission)} accent="#10b981" sub={`@ ${commPct}%`} big />
-        <StatCard icon={<IcCheckCir />} label="Active Subs" value={activeSubs} accent="#8b5cf6" sub="currently live" />
+        <StatCard icon={<IcCheckCir />} label="New Commission" value={fmtINR(newCommission)} accent="#6366f1" sub="1st sub per user" />
+        <StatCard icon={<IcCheckCir />} label="Renewal Commission" value={fmtINR(renewalCommission)} accent="#8b5cf6" sub="2nd+ subs per user" />
       </div>
 
       {/* ── Monthly Breakdown ────────────────────────────────────────── */}

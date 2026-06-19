@@ -157,35 +157,86 @@ export function UnifiedLogin() {
   };
 
   return (
-    <div style={{
-      minHeight:"100vh",
-      background:"linear-gradient(135deg,#0f172a 0%,#1e1b4b 60%,#0f172a 100%)",
-      display:"flex", flexDirection:"column", alignItems:"center", justifyContent:"center",
-      padding:24, fontFamily:"'DM Sans','Segoe UI',sans-serif",
-    }}>
-      <div style={{
-        background:"rgba(30,41,59,0.95)", border:"1px solid #334155",
-        borderRadius:22, padding:"44px 40px", width:"100%", maxWidth:420,
-        boxShadow:"0 30px 80px rgba(0,0,0,0.6)", backdropFilter:"blur(12px)",
-      }}>
-        <div style={{ textAlign:"center", marginBottom:36 }}>
-          <img src={logo} alt="MLM Booster" style={{ width:84, height:84, marginBottom:16, borderRadius:18, boxShadow:"0 8px 24px rgba(99,102,241,0.4)" }} />
-          <h1 style={{ margin:0, fontSize:24, fontWeight:800, color:"#a5b4fc", letterSpacing:"-0.5px" }}>
+    <div
+      style={{
+        minHeight: "100vh",
+        background:
+          "linear-gradient(135deg,#0f172a 0%,#1e1b4b 60%,#0f172a 100%)",
+        display: "flex",
+        flexDirection: "column",
+        alignItems: "center",
+        justifyContent: "center",
+        padding: 24,
+        fontFamily: "'DM Sans','Segoe UI',sans-serif",
+      }}
+    >
+      <div
+        style={{
+          background: "rgba(30,41,59,0.95)",
+          border: "1px solid #334155",
+          borderRadius: 22,
+          padding: "44px 40px",
+          width: "100%",
+          maxWidth: 420,
+          display: "flex",
+          flexDirection: "column",
+          alignItems: "center",
+          justifyContent: "center",
+          boxShadow: "0 30px 80px rgba(0,0,0,0.6)",
+          backdropFilter: "blur(12px)",
+        }}
+      >
+        <div
+          style={{
+            textAlign: "center",
+            marginBottom: 36,
+            display: "flex",
+            flexDirection: "column",
+            alignItems: "center",
+            justifyContent: "center",
+          }}
+        >
+          <img
+            src={logo}
+            alt="MLM Booster"
+            style={{
+              width: 84,
+              height: 84,
+              marginBottom: 16,
+              borderRadius: 18,
+              boxShadow: "0 8px 24px rgba(99,102,241,0.4)",
+            }}
+          />
+          <h1
+            style={{
+              margin: 0,
+              fontSize: 24,
+              fontWeight: 800,
+              color: "#a5b4fc",
+              letterSpacing: "-0.5px",
+            }}
+          >
             MLM Booster
           </h1>
-          <p style={{ margin:"8px 0 0", fontSize:13, color:"#64748b" }}>
+          <p style={{ margin: "8px 0 0", fontSize: 13, color: "#64748b" }}>
             Marketing members &amp; team — sign in below
           </p>
         </div>
 
-        <form onSubmit={handleLogin} style={{ display:"flex", flexDirection:"column", gap:18 }} autoComplete="off">
+        <form
+          onSubmit={handleLogin}
+          style={{ display: "flex", flexDirection: "column", gap: 18 }}
+          autoComplete="off"
+        >
           <div>
             <label style={labelStyle}>Mobile Number</label>
             <input
               type="tel"
               maxLength={10}
               value={mobile}
-              onChange={e => setMobile(e.target.value.replace(/\D/g,"").slice(0,10))}
+              onChange={(e) =>
+                setMobile(e.target.value.replace(/\D/g, "").slice(0, 10))
+              }
               placeholder="10-digit mobile number"
               style={inputStyle}
               autoComplete="username"
@@ -195,52 +246,112 @@ export function UnifiedLogin() {
 
           <div>
             <label style={labelStyle}>Password / PIN</label>
-            <div style={{ position:"relative" }}>
+            <div style={{ position: "relative" }}>
               <input
                 type={showPw ? "text" : "password"}
                 value={password}
-                onChange={e => setPassword(e.target.value.slice(0,20))}
+                onChange={(e) => setPassword(e.target.value.slice(0, 20))}
                 maxLength={20}
                 placeholder="Your password or 4-digit PIN"
-                style={{ ...inputStyle, paddingRight:44 }}
+                style={{ ...inputStyle, paddingRight: 44 }}
                 autoComplete="current-password"
               />
-              <button type="button" onClick={() => setShowPw(v => !v)}
-                style={{ position:"absolute", right:12, top:"50%", transform:"translateY(-50%)", background:"none", border:"none", cursor:"pointer", color:"#64748b", fontSize:13, padding:4 }}>
+              <button
+                type="button"
+                onClick={() => setShowPw((v) => !v)}
+                style={{
+                  position: "absolute",
+                  right: 12,
+                  top: "50%",
+                  transform: "translateY(-50%)",
+                  background: "none",
+                  border: "none",
+                  cursor: "pointer",
+                  color: "#64748b",
+                  fontSize: 13,
+                  padding: 4,
+                }}
+              >
                 {showPw ? "Hide" : "Show"}
               </button>
             </div>
           </div>
 
           {error && (
-            <div style={{
-              background:"#ef444410", border:"1px solid #ef444450",
-              borderRadius:10, padding:"11px 14px", color:"#f87171",
-              fontSize:13, display:"flex", alignItems:"flex-start", gap:8,
-            }}>
-              <span style={{ flexShrink:0 }}>⚠</span> {error}
+            <div
+              style={{
+                background: "#ef444410",
+                border: "1px solid #ef444450",
+                borderRadius: 10,
+                padding: "11px 14px",
+                color: "#f87171",
+                fontSize: 13,
+                display: "flex",
+                alignItems: "flex-start",
+                gap: 8,
+              }}
+            >
+              <span style={{ flexShrink: 0 }}>⚠</span> {error}
             </div>
           )}
 
-          <button type="submit" disabled={loading} style={{
-            marginTop:2, padding:14,
-            background: loading ? "#4338ca60" : "linear-gradient(135deg,#6366f1,#8b5cf6)",
-            border:"none", borderRadius:12, color:"#fff", fontWeight:700, fontSize:15,
-            cursor: loading ? "not-allowed" : "pointer", transition:"all 0.2s",
-            display:"flex", alignItems:"center", justifyContent:"center", gap:8, letterSpacing:"0.01em",
-          }}>
+          <button
+            type="submit"
+            disabled={loading}
+            style={{
+              marginTop: 2,
+              padding: 14,
+              background: loading
+                ? "#4338ca60"
+                : "linear-gradient(135deg,#6366f1,#8b5cf6)",
+              border: "none",
+              borderRadius: 12,
+              color: "#fff",
+              fontWeight: 700,
+              fontSize: 15,
+              cursor: loading ? "not-allowed" : "pointer",
+              transition: "all 0.2s",
+              display: "flex",
+              alignItems: "center",
+              justifyContent: "center",
+              gap: 8,
+              letterSpacing: "0.01em",
+            }}
+          >
             {loading ? (
               <>
-                <span style={{ width:16, height:16, border:"2px solid #ffffff40", borderTopColor:"#fff", borderRadius:"50%", animation:"spin 0.7s linear infinite", display:"inline-block", flexShrink:0 }} />
+                <span
+                  style={{
+                    width: 16,
+                    height: 16,
+                    border: "2px solid #ffffff40",
+                    borderTopColor: "#fff",
+                    borderRadius: "50%",
+                    animation: "spin 0.7s linear infinite",
+                    display: "inline-block",
+                    flexShrink: 0,
+                  }}
+                />
                 Signing in…
               </>
-            ) : "Sign In →"}
+            ) : (
+              "Sign In →"
+            )}
           </button>
         </form>
 
-        <p style={{ textAlign:"center", marginTop:24, fontSize:11, color:"#475569", lineHeight:1.6 }}>
+        <p
+          style={{
+            textAlign: "center",
+            marginTop: 24,
+            fontSize: 11,
+            color: "#475569",
+            lineHeight: 1.6,
+          }}
+        >
           Marketing members, sub-users &amp; app users all use this login.
-          <br />Contact your admin if you need access.
+          <br />
+          Contact your admin if you need access.
         </p>
       </div>
 

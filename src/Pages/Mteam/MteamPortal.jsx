@@ -307,25 +307,26 @@ export default function MteamPortal() {
   const handleWhatsAppShare = () => {
     const name = session.name ?? "मैं";
     const code = couponCode || "मेरा रेफरल कोड";
-    const message = `🎉 नमस्ते! हम ${name} बोल रहे है।
-📲 मैं आपको *MLM LIVE APP* के बारे में बताना चाहते है — यह App आपके Business की Social Media Presence को बिल्कुल नए Level पर ले जाएगी!
+    const message = `
+    
+    🔥 MLM LIVE Offer 🔥
 
-🌟 *ऐप में क्या मिलेगा:*
-🖼️ *Professional Posters* — रोज़ नए और शानदार Posters तैयार मिलेंगे, सीधे Download करो!
-📊 *Daily Work Reporting* — अपना रोज़ का काम आसानी से Report करें
-🎨 *Quality Graphics* — High-Quality Designs
-🎬 *Videos* — Social Media के लिए Ready-to-Share Videos
-💡 अब अलग-अलग Apps की ज़रूरत नहीं — सब कुछ एक जगह!
+📢 अब बैनर बनाने के लिए पैसे खर्च करने की जरूरत नहीं!
 
-👇 अभी Download करें:
-${APP_LINK}
+✅ Referral Code - ${code}
+✅ Referral Code डालते ही आप बना सकते है Unlimited Banner बिल्कुल Free 
+    सभी Network Marketing Banner 
+✅ Rank Achievement
+✅ Birthday
+✅ Anniversary
+✅ Meeting
+✅ Motivational 
+✅ Festival Banner जैसे 10000 से ज़्यादा Template बिल्कुल FREE
 
-🎁 *Referral Code: ${code}*
+🎁 Special Offer:
+मेरे 🎁  *Referral Code: ${code}*  से Join करें और Unlimited Banner बनाएं बिना किसी Charge के।
 
-इस Code से Download करें और Special Discount पाएं! 🙏
-_ MLM LIVE — आपकी मेहनत, हमारी Design!_ 🚀
-
-अधिक जानकारी के लिए www.mlmlive.in पर जाएं
+📲 Download Now ${APP_LINK}
 `;
 
     const encoded = encodeURIComponent(message);
